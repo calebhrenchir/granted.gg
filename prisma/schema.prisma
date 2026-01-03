@@ -1,0 +1,166 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Link {
+  id   String  @id @default(uuid())
+  url  String  @unique
+  name String?
+
+  isDownloadable     Boolean @default(true)
+  isLinkTitleVisible Boolean @default(false)
+  isPurchaseable     Boolean @default(true)
+
+  price           Decimal    @db.Decimal(10, 2)
+  totalEarnings   Decimal    @default(0) @db.Decimal(10, 2)
+  totalClicks     Int        @default(0)
+  totalSales      Int        @default(0)
+  coverPhotoS3Key String?
+  coverColor      String?
+  userId          String?
+  user            User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  files           File[]
+  activities      Activity[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  disabled       Boolean   @default(false)
+  disabledAt     DateTime?
+  disabledReason String?
+
+  deleted   Boolean   @default(false)
+  deletedAt DateTime?
+
+  @@map("links")
+}
+
+model File {
+  id            String   @id @default(uuid())
+  name          String
+  mimeType      String
+  size          Int
+  
+  s3Key         String
+  blurredS3Key  String?
+
+  isCoverPhoto  Boolean  @default(false)
+  isPreviewable Boolean  @default(false)
+  linkId        String
+  link          Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("files")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  isAdmin Boolean @default(false)
+
+  firstName                   String?
+  lastName                    String?
+  dateOfBirth                 DateTime?
+  phoneNumber                 String?
+  addressLine1                String?
+  addressLine2                String?
+  city                        String?
+  state                       String?
+  postalCode                  String?
+  country                     String?
+  stripeVerificationSessionId String?
+  isIdentityVerified          Boolean   @default(false)
+  stripeConnectAccountId      String?
+
+  emailNotificationLinkViews     Boolean @default(true)
+  emailNotificationLinkPurchases Boolean @default(true)
+  emailNotificationCashOut       Boolean @default(true)
+
+  platformFee Int @default(20) // Platform fee percentage (default 20%, whole numbers only)
+
+  accounts  Account[]
+  sessions  Session[]
+  links     Link[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Activity {
+  id                    String   @id @default(uuid())
+  linkId                String
+  link                  Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  type                  String // "click" or "purchase"
+  amount                Int? // Stored in cents, only for purchases (base price before fees)
+  platformFee           Int? // Platform fee percentage used at time of purchase (e.g., 20 for 20%)
+  stripePaymentIntentId String?
+  createdAt             DateTime @default(now())
+
+  @@map("activities")
+}
+
+model Policy {
+  id          String   @id @default(uuid())
+  type        String   @unique // "terms", "privacy", "removal"
+  title       String
+  lastUpdated DateTime @default(now())
+  sections    Json // Array of { title: string, description: string }
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("policies")
+}

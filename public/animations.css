@@ -1,0 +1,74 @@
+.hero-loop {
+    opacity: 0;
+    animation: hero-loop 48s ease-in-out infinite both;
+    animation-delay: 3s;
+}
+
+.hero-mask {
+    -webkit-mask: linear-gradient(180deg, #000 0, rgba(0, 0, 0, .991) .8%, rgba(0, 0, 0, .967) 3%, rgba(0, 0, 0, .928) 6.5%, rgba(0, 0, 0, .876) 11.1%, rgba(0, 0, 0, .814) 16.8%, rgba(0, 0, 0, .743) 23.4%, rgba(0, 0, 0, .665) 30.7%, rgba(0, 0, 0, .581) 38.7%, rgba(0, 0, 0, .495) 47.1%, rgba(0, 0, 0, .406) 55.9%, rgba(0, 0, 0, .317) 64.8%, rgba(0, 0, 0, .231) 73.9%, rgba(0, 0, 0, .148) 82.8%, rgba(0, 0, 0, .07) 91.6%, transparent), linear-gradient(180deg, #000 0, #000);
+    mask: linear-gradient(180deg, #000 0, rgba(0, 0, 0, .991) .8%, rgba(0, 0, 0, .967) 3%, rgba(0, 0, 0, .928) 6.5%, rgba(0, 0, 0, .876) 11.1%, rgba(0, 0, 0, .814) 16.8%, rgba(0, 0, 0, .743) 23.4%, rgba(0, 0, 0, .665) 30.7%, rgba(0, 0, 0, .581) 38.7%, rgba(0, 0, 0, .495) 47.1%, rgba(0, 0, 0, .406) 55.9%, rgba(0, 0, 0, .317) 64.8%, rgba(0, 0, 0, .231) 73.9%, rgba(0, 0, 0, .148) 82.8%, rgba(0, 0, 0, .07) 91.6%, transparent), linear-gradient(180deg, #000 0, #000);
+    -webkit-mask-size: 100% 240px, 100% calc(100% - 240px);
+    mask-size: 100% 240px, 100% calc(100% - 240px);
+    -webkit-mask-position: bottom center, top center;
+    mask-position: bottom center, top center;
+    -webkit-mask-repeat: no-repeat, no-repeat;
+    mask-repeat:no-repeat, no-repeat
+}
+
+@keyframes hero-loop {
+    0%, 2.5% {
+        opacity: 1;
+        transform:rotate(0deg) scale(.9)
+    }
+
+    12.5%, 15% {
+        transform:rotate(-45deg) scale(.9)
+    }
+
+    25%, 27.5% {
+        transform:rotate(-90deg) scale(.9)
+    }
+
+    37.5%, 40% {
+        transform:rotate(-135deg) scale(.9)
+    }
+
+    50%, 52.5% {
+        transform:rotate(-180deg) scale(.9)
+    }
+
+    62.5%, 65% {
+        transform:rotate(-225deg) scale(.9)
+    }
+
+    72.5%, 75% {
+        transform:rotate(-270deg) scale(.9)
+    }
+
+    85%, 87.5% {
+        transform:rotate(-315deg) scale(.9)
+    }
+
+    to {
+        opacity: 1;
+        transform:rotate(-1turn) scale(.9)
+    }
+}
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.fade-in {
+    animation: fade-in 3s ease-in-out forwards;
+}
+
+.mobile-mask {
+    -webkit-mask-image: url("/public/outlines/iphone-mask.svg");
+    mask-image:url("/public/outlines/iphone-mask.svg")
+}
