@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { centsToDollars } from "@/lib/stripe";
+import { centsToDollars, stripe } from "@/lib/stripe";
+import Stripe from "stripe";
 
 export async function GET(request: Request) {
     try {
@@ -72,12 +73,37 @@ export async function GET(request: Request) {
         const sales = formattedActivities.filter(a => a.type === "purchase");
         const withdraws = formattedActivities.filter(a => a.type === "withdraw");
 
+        // Fetch bank name from Stripe if user has a connected account
+        let bankName: string | null = null;
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { stripeConnectAccountId: true },
+        });
+
+        if (user?.stripeConnectAccountId) {
+            try {
+                const externalAccounts = await stripe.accounts.listExternalAccounts(
+                    user.stripeConnectAccountId,
+                    { object: "bank_account", limit: 1 }
+                );
+                
+                if (externalAccounts.data.length > 0) {
+                    const bankAccount = externalAccounts.data[0] as Stripe.BankAccount;
+                    bankName = bankAccount.bank_name || null;
+                }
+            } catch (error) {
+                console.error("Error fetching bank name:", error);
+                // Continue without bank name if there's an error
+            }
+        }
+
         return NextResponse.json({
             success: true,
             availableFunds: totalAvailableFunds,
             recentSales: sales,
             allActivities: formattedActivities,
             withdraws: withdraws,
+            bankName,
         });
     } catch (error) {
         console.error("Error fetching wallet data:", error);

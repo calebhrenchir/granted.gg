@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { DollarSign, TrendingUp, Users, Link2, MousePointerClick, ShoppingCart, BarChart3 } from "lucide-react";
+import { DollarSign, TrendingUp, Users, Link2, MousePointerClick, ShoppingCart, BarChart3, ArrowDownRight, CreditCard, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -19,6 +19,11 @@ interface AnalyticsData {
     clicks: number;
     conversionRate: number;
     averageOrderValue: number;
+    withdrawals: number;
+    withdrawalAmount: number;
+    usersWithConnectAccounts: number;
+    usersWithVerifiedIdentity: number;
+    connectAccountsWithPayouts: number;
   };
   growth: {
     newUsers: number;
@@ -31,6 +36,8 @@ interface AnalyticsData {
     clicks: number[];
     conversions: number[];
     users: number[];
+    withdrawals: number[];
+    withdrawalAmounts: number[];
   };
   topLinks: Array<{
     id: string;
@@ -140,6 +147,8 @@ export default function AnalyticsPage() {
   const clicksData = analytics?.charts.clicks ?? Array(parseInt(period) || 30).fill(0);
   const conversionData = analytics?.charts.conversions ?? Array(parseInt(period) || 30).fill(0);
   const usersData = analytics?.charts.users ?? Array(parseInt(period) || 30).fill(0);
+  const withdrawalsData = analytics?.charts.withdrawals ?? Array(parseInt(period) || 30).fill(0);
+  const withdrawalAmountsData = analytics?.charts.withdrawalAmounts ?? Array(parseInt(period) || 30).fill(0);
 
   const maxSales = Math.max(...salesData, 1);
   const maxRevenue = Math.max(...revenueData, 1);
@@ -147,6 +156,8 @@ export default function AnalyticsPage() {
   const maxClicks = Math.max(...clicksData, 1);
   const maxConversion = Math.max(...conversionData, 1);
   const maxUsers = Math.max(...usersData, 1);
+  const maxWithdrawals = Math.max(...withdrawalsData, 1);
+  const maxWithdrawalAmounts = Math.max(...withdrawalAmountsData, 1);
 
   const periods = [
     { value: "7", label: "7 Days" },
@@ -243,6 +254,35 @@ export default function AnalyticsPage() {
           loading={loading}
           icon={Link2}
           trend={period !== "all" ? `in last ${period} days` : undefined}
+        />
+      </div>
+
+      {/* Stripe Connect & Withdrawal Metrics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4">
+        <MetricCard 
+          title="Total Withdrawals" 
+          value={analytics?.totals.withdrawals ?? 0} 
+          loading={loading}
+          icon={ArrowDownRight}
+        />
+        <MetricCard 
+          title="Withdrawal Amount" 
+          value={analytics?.totals.withdrawalAmount ? `$${analytics.totals.withdrawalAmount.toFixed(2)}` : "$0.00"} 
+          loading={loading}
+          icon={DollarSign}
+        />
+        <MetricCard 
+          title="Connect Accounts" 
+          value={analytics?.totals.usersWithConnectAccounts ?? 0} 
+          loading={loading}
+          icon={CreditCard}
+          trend={`${analytics?.totals.connectAccountsWithPayouts ?? 0} with payouts`}
+        />
+        <MetricCard 
+          title="Verified Identity" 
+          value={analytics?.totals.usersWithVerifiedIdentity ?? 0} 
+          loading={loading}
+          icon={CheckCircle2}
         />
       </div>
 
@@ -408,6 +448,74 @@ export default function AnalyticsPage() {
                     <TooltipContent>
                       <div className="text-center">
                         <p className="font-semibold">{value.toFixed(1)}% conversion</p>
+                        <p className="text-xs text-black/70">{date}</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })
+            )}
+          </div>
+        </ChartCard>
+
+        <ChartCard title="Withdrawals" subtitle={`last ${period === "all" ? "30" : period} days`}>
+          <div className="flex items-end justify-between gap-[3px] h-32 sm:h-40">
+            {loading ? (
+              Array(chartDays).fill(0).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex-1 bg-white/10 animate-pulse rounded-t-[2px]"
+                  style={{ height: "20%" }}
+                />
+              ))
+            ) : (
+              withdrawalsData.map((value, i) => {
+                const date = getDateForIndex(i, chartDays);
+                return (
+                  <Tooltip key={i}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className="flex-1 bg-gradient-to-t from-[#ef4444] to-[#f87171] rounded-t-[2px] transition-all hover:opacity-80 cursor-pointer"
+                        style={{ height: `${(value / maxWithdrawals) * 100}%` }}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="text-center">
+                        <p className="font-semibold">{value} {value === 1 ? 'withdrawal' : 'withdrawals'}</p>
+                        <p className="text-xs text-black/70">{date}</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })
+            )}
+          </div>
+        </ChartCard>
+
+        <ChartCard title="Withdrawal Amounts" subtitle={`last ${period === "all" ? "30" : period} days`}>
+          <div className="flex items-end justify-between gap-[3px] h-32 sm:h-40">
+            {loading ? (
+              Array(chartDays).fill(0).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex-1 bg-white/10 animate-pulse rounded-t-[2px]"
+                  style={{ height: "20%" }}
+                />
+              ))
+            ) : (
+              withdrawalAmountsData.map((value, i) => {
+                const date = getDateForIndex(i, chartDays);
+                return (
+                  <Tooltip key={i}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className="flex-1 bg-gradient-to-t from-[#ef4444] to-[#f87171] rounded-t-[2px] transition-all hover:opacity-80 cursor-pointer"
+                        style={{ height: `${(value / maxWithdrawalAmounts) * 100}%` }}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="text-center">
+                        <p className="font-semibold">${value.toFixed(2)}</p>
                         <p className="text-xs text-black/70">{date}</p>
                       </div>
                     </TooltipContent>

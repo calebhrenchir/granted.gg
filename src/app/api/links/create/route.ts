@@ -52,6 +52,19 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if user is frozen
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { isFrozen: true },
+    });
+
+    if (user?.isFrozen) {
+      return NextResponse.json(
+        { error: "Your account has been frozen. You cannot create new links. Please contact support for assistance." },
+        { status: 403 }
+      );
+    }
+
     const formData = await request.formData();
     const price = formData.get("price") as string;
     const files = formData.getAll("files") as File[];
@@ -82,10 +95,17 @@ export async function POST(request: Request) {
       urlExists = !!existingLink;
     }
 
+    // Convert URL slug to properly formatted name (e.g., "happy-apple-whale" -> "Happy Apple Whale")
+    const formattedName = uniqueUrl!
+      .split("-")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+
     // Create link in database
     const link = await prisma.link.create({
       data: {
         url: uniqueUrl!,
+        name: formattedName,
         price: numericPrice,
         userId: session.user.id,
       },

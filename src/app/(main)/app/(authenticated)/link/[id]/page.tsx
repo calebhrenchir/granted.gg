@@ -144,6 +144,8 @@ export default function FilePage() {
     const [priceInputWidth, setPriceInputWidth] = useState<number>(60);
     const priceMeasureRef = useRef<HTMLSpanElement>(null);
     const [priceError, setPriceError] = useState<string | null>(null);
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [isEditingPrice, setIsEditingPrice] = useState(false);
 
     const [view, setView] = useState<"files" | "activity" | "stats">("files");
 
@@ -188,7 +190,7 @@ export default function FilePage() {
 
         // Also check cache when page becomes visible (user returns after closing modal)
         const handleVisibilityChange = () => {
-            if (document.visibilityState === "visible" && linkId) {
+            if (document.visibilityState === "visible" && linkId && !isEditingName && !isEditingPrice) {
                 // Check if cache was updated
                 const cached = getCachedLink(linkId);
                 if (cached && cached.link) {
@@ -200,10 +202,10 @@ export default function FilePage() {
                         return prevLink || cached.link;
                     });
                     setFiles(cached.files || []);
-                    if (cached.link.name !== undefined) {
+                    if (cached.link.name !== undefined && !isEditingName) {
                         setLinkName(cached.link.name || "");
                     }
-                    if (cached.link.price !== undefined) {
+                    if (cached.link.price !== undefined && !isEditingPrice) {
                         setLinkPrice(Number(cached.link.price).toString());
                     }
                 }
@@ -214,7 +216,7 @@ export default function FilePage() {
 
         // Also poll cache periodically to catch updates (fallback)
         const pollInterval = setInterval(() => {
-            if (linkId) {
+            if (linkId && !isEditingName && !isEditingPrice) {
                 const cached = getCachedLink(linkId);
                 if (cached && cached.link) {
                     setLink((prevLink) => {
@@ -224,10 +226,10 @@ export default function FilePage() {
                         return prevLink || cached.link;
                     });
                     setFiles(cached.files || []);
-                    if (cached.link.name !== undefined) {
+                    if (cached.link.name !== undefined && !isEditingName) {
                         setLinkName(cached.link.name || "");
                     }
-                    if (cached.link.price !== undefined) {
+                    if (cached.link.price !== undefined && !isEditingPrice) {
                         setLinkPrice(Number(cached.link.price).toString());
                     }
                 }
@@ -440,8 +442,13 @@ export default function FilePage() {
                         <input 
                             type="text"
                             value={linkName}
-                            onChange={(e) => setLinkName(e.target.value)}
+                            onChange={(e) => {
+                                setIsEditingName(true);
+                                setLinkName(e.target.value);
+                            }}
+                            onFocus={() => setIsEditingName(true)}
                             onBlur={async () => {
+                                setIsEditingName(false);
                                 // Only update if name actually changed
                                 if (linkName !== (link?.name || "")) {
                                     setIsUpdatingName(true);
@@ -524,11 +531,14 @@ export default function FilePage() {
                                     mask="currency"
                                     value={linkPrice || "0"}
                                     onValueChange={(maskedValue, unmaskedValue) => {
+                                        setIsEditingPrice(true);
                                         // Store the unmasked value (numeric string)
                                         const numericValue = unmaskedValue || "0";
                                         setLinkPrice(numericValue);
                                     }}
+                                    onFocus={() => setIsEditingPrice(true)}
                                     onBlur={async () => {
+                                        setIsEditingPrice(false);
                                         // Parse and validate the price
                                         const priceValue = parseFloat(linkPrice);
                                         const currentPrice = parseFloat(Number(link.price).toFixed(2));

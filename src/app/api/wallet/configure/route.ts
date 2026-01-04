@@ -281,32 +281,80 @@ export async function POST(request: Request) {
       bankName = token.bank_account.bank_name || undefined;
     }
 
-    // Check if account needs additional verification
-    const account = await stripe.accounts.retrieve(connectedAccountId);
-    const needsVerification = account.individual?.verification?.status === "unverified" || 
-                              account.individual?.verification?.status === "pending";
+    // Check account requirements and try to auto-fix what we can
+    let account = await stripe.accounts.retrieve(connectedAccountId);
+    const requirements = account.requirements;
+    const currentlyDue = requirements?.currently_due || [];
+    const eventuallyDue = requirements?.eventually_due || [];
+    const pastDue = requirements?.past_due || [];
+    
+    let missingRequirements = [...new Set([...currentlyDue, ...eventuallyDue, ...pastDue])];
+    
+    // Try to auto-fix requirements we can handle via API
+    const autoFixable = missingRequirements.filter((req: string) => {
+      return req.includes('business_profile.mcc') ||
+             req.includes('business_profile.url') ||
+             req.includes('tos_acceptance') ||
+             req.includes('individual.id_number') ||
+             req.includes('individual.verification.document');
+    });
 
-    // If verification is needed, create an account link for additional verification
-    let accountLinkUrl = null;
-    if (needsVerification) {
-      const baseUrl = "https://granted.gg"//process.env.NEXT_PUBLIC_BASE_URL || "http://app.localhost:3000";
-      //console.log("baseUrl", baseUrl);
-      const accountLink = await stripe.accountLinks.create({
-        account: connectedAccountId,
-        refresh_url: `${baseUrl}/wallet?refresh=true`,
-        return_url: `${baseUrl}/wallet?success=true`,
-        type: "account_onboarding",
-      });
-      accountLinkUrl = accountLink.url;
+    // If there are auto-fixable requirements, fix them automatically
+    if (autoFixable.length > 0) {
+      try {
+        const updateParams: Stripe.AccountUpdateParams = {
+          business_profile: {
+            mcc: account.business_profile?.mcc || "5815",
+            url: "https://granted.gg",
+          },
+          tos_acceptance: {
+            date: account.tos_acceptance?.date || Math.floor(Date.now() / 1000),
+            ip: account.tos_acceptance?.ip || clientIp,
+          },
+        };
+
+        // Add individual params if we have Identity verification data
+        if (idNumber || documentFront || documentBack) {
+          updateParams.individual = {
+            ...(idNumber && { id_number: idNumber }),
+            ...((documentFront || documentBack) && {
+              verification: {
+                document: {
+                  ...(documentFront && { front: documentFront }),
+                  ...(documentBack && { back: documentBack }),
+                },
+              },
+            }),
+          };
+        }
+
+        await stripe.accounts.update(connectedAccountId, updateParams);
+        
+        // Re-check requirements after auto-fix
+        account = await stripe.accounts.retrieve(connectedAccountId);
+        const updatedRequirements = account.requirements;
+        const updatedCurrentlyDue = updatedRequirements?.currently_due || [];
+        const updatedEventuallyDue = updatedRequirements?.eventually_due || [];
+        const updatedPastDue = updatedRequirements?.past_due || [];
+        missingRequirements = [...new Set([...updatedCurrentlyDue, ...updatedEventuallyDue, ...updatedPastDue])];
+      } catch (fixError) {
+        console.error("Error auto-fixing requirements:", fixError);
+      }
     }
+
+    // Filter to only requirements that need user input (like SSN last 4)
+    const userInputRequired = missingRequirements.filter((req: string) => {
+      return req.includes('individual.ssn_last_4');
+    });
 
     return NextResponse.json({
       success: true,
       connectedAccountId,
       externalAccountId: externalAccount.id,
       bankName,
-      needsVerification,
-      accountLinkUrl,
+      payoutsEnabled: account.payouts_enabled,
+      missingRequirements: missingRequirements.length > 0 ? missingRequirements : [],
+      userInputRequired: userInputRequired.length > 0 ? userInputRequired : [],
     });
   } catch (error: any) {
     console.error("Error configuring wallet:", error);

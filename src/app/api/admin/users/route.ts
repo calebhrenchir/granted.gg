@@ -47,6 +47,7 @@ export async function GET(request: Request) {
         image: true,
         isAdmin: true,
         isIdentityVerified: true,
+        isFrozen: true,
         createdAt: true,
         _count: {
           select: {

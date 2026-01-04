@@ -40,6 +40,7 @@ interface User {
   image: string | null;
   isAdmin: boolean;
   isIdentityVerified: boolean;
+  isFrozen: boolean;
   createdAt: string;
   _count: {
     links: number;
@@ -56,6 +57,7 @@ interface UserDetails extends User {
   postalCode: string | null;
   country: string | null;
   platformFee: number;
+  isFrozen: boolean;
   links: Array<{
     id: string;
     url: string;
@@ -172,6 +174,7 @@ function UsersPageContent() {
           country: data.user.country || "",
           isAdmin: data.user.isAdmin || false,
           isIdentityVerified: data.user.isIdentityVerified || false,
+          isFrozen: data.user.isFrozen || false,
           platformFee: data.user.platformFee !== undefined ? Number(data.user.platformFee) : 20,
         });
         setSheetOpen(true);
@@ -400,6 +403,9 @@ function UsersPageContent() {
                           )}
                           {user.isAdmin && (
                             <Shield className="size-4 text-blue-500" />
+                          )}
+                          {user.isFrozen && (
+                            <XCircle className="size-4 text-red-500" title="Frozen" />
                           )}
                         </div>
                       </TableCell>
@@ -645,6 +651,27 @@ function UsersPageContent() {
                       <label className="text-white text-sm flex items-center gap-2 cursor-pointer">
                         <Shield className="size-4 text-blue-500" />
                         Admin
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-3 pt-2">
+                      <Checkbox
+                        checked={editingUser.isFrozen || false}
+                        onCheckedChange={(checked) => 
+                          setEditingUser({ ...editingUser, isFrozen: checked === true })
+                        }
+                      />
+                      <label className="text-white text-sm flex items-center gap-2 cursor-pointer">
+                        {editingUser.isFrozen ? (
+                          <>
+                            <XCircle className="size-4 text-red-500" />
+                            Frozen (Cannot withdraw or create links)
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="size-4 text-green-500" />
+                            Active
+                          </>
+                        )}
                       </label>
                     </div>
                     <div className="flex flex-col gap-2 pt-2">

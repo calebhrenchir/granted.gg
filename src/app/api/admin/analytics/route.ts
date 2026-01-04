@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { centsToDollars } from "@/lib/stripe";
+import { centsToDollars, stripe } from "@/lib/stripe";
 import { checkAdminStatus } from "@/lib/admin-helpers";
 import { NextResponse } from "next/server";
 
@@ -33,9 +33,12 @@ export async function GET(request: Request) {
       totalRevenue,
       recentPurchases,
       recentClicks,
+      recentWithdrawals,
       newUsers,
       newLinks,
       topLinks,
+      usersWithConnect,
+      usersWithVerifiedIdentity,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.link.count(),
@@ -87,6 +90,21 @@ export async function GET(request: Request) {
           createdAt: "asc",
         },
       }),
+      // Recent withdrawals for charts
+      prisma.activity.findMany({
+        where: {
+          type: "withdraw",
+          ...(startDate && { createdAt: dateFilter }),
+        },
+        select: {
+          createdAt: true,
+          amount: true,
+          linkId: true,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      }),
       // New users in period
       prisma.user.count({
         where: startDate ? { createdAt: dateFilter } : {},
@@ -120,6 +138,18 @@ export async function GET(request: Request) {
         },
         take: 10,
       }),
+      // Users with Stripe Connect accounts
+      prisma.user.count({
+        where: {
+          stripeConnectAccountId: { not: null },
+        },
+      }),
+      // Users with verified identity
+      prisma.user.count({
+        where: {
+          isIdentityVerified: true,
+        },
+      }),
     ]);
 
     // Group data by day
@@ -129,6 +159,8 @@ export async function GET(request: Request) {
     const dailyProfit: { [key: string]: number } = {};
     const dailyClicks: { [key: string]: number } = {};
     const dailyUsers: { [key: string]: number } = {};
+    const dailyWithdrawals: { [key: string]: number } = {};
+    const dailyWithdrawalAmounts: { [key: string]: number } = {};
 
     // Initialize all days with 0
     for (let i = chartDays - 1; i >= 0; i--) {
@@ -140,6 +172,8 @@ export async function GET(request: Request) {
       dailyProfit[dateKey] = 0;
       dailyClicks[dateKey] = 0;
       dailyUsers[dateKey] = 0;
+      dailyWithdrawals[dateKey] = 0;
+      dailyWithdrawalAmounts[dateKey] = 0;
     }
 
     // Fill in sales and revenue data
@@ -166,6 +200,17 @@ export async function GET(request: Request) {
       }
     });
 
+    // Fill in withdrawals data
+    recentWithdrawals.forEach((withdrawal) => {
+      const dateKey = withdrawal.createdAt.toISOString().split("T")[0];
+      if (dailyWithdrawals[dateKey] !== undefined) {
+        dailyWithdrawals[dateKey] += 1;
+        if (withdrawal.amount) {
+          dailyWithdrawalAmounts[dateKey] += withdrawal.amount; // in cents
+        }
+      }
+    });
+
     // Get new users per day
     if (startDate) {
       const newUsersData = await prisma.user.findMany({
@@ -186,6 +231,8 @@ export async function GET(request: Request) {
     const profitData = Object.values(dailyProfit).map((cents) => cents / 100); // Convert to dollars
     const clicksData = Object.values(dailyClicks);
     const usersData = Object.values(dailyUsers);
+    const withdrawalsData = Object.values(dailyWithdrawals);
+    const withdrawalAmountsData = Object.values(dailyWithdrawalAmounts).map((cents) => cents / 100); // Convert to dollars
 
     // Calculate conversion rates
     const conversionData = clicksData.map((clicks, i) => {
@@ -212,6 +259,43 @@ export async function GET(request: Request) {
     // Calculate average order value
     const averageOrderValue = totalSalesCount > 0 ? totalRevenueAmount / totalSalesCount : 0;
 
+    // Calculate withdrawal totals
+    const totalWithdrawals = withdrawalsData.reduce((sum, count) => sum + count, 0);
+    const totalWithdrawalAmount = withdrawalAmountsData.reduce((sum, amount) => sum + amount, 0);
+
+    // Check Stripe Connect accounts with payouts enabled
+    let connectAccountsWithPayouts = 0;
+    try {
+      const usersWithConnectAccounts = await prisma.user.findMany({
+        where: {
+          stripeConnectAccountId: { not: null },
+        },
+        select: {
+          stripeConnectAccountId: true,
+        },
+        take: 100, // Limit to avoid too many API calls
+      });
+
+      // Check each account's payout status
+      const payoutChecks = await Promise.allSettled(
+        usersWithConnectAccounts.map(async (user) => {
+          if (!user.stripeConnectAccountId) return false;
+          try {
+            const account = await stripe.accounts.retrieve(user.stripeConnectAccountId);
+            return account.payouts_enabled === true;
+          } catch {
+            return false;
+          }
+        })
+      );
+
+      connectAccountsWithPayouts = payoutChecks.filter(
+        (result) => result.status === "fulfilled" && result.value === true
+      ).length;
+    } catch (error) {
+      console.error("Error checking Stripe Connect payout status:", error);
+    }
+
     return NextResponse.json({
       period,
       totals: {
@@ -224,6 +308,11 @@ export async function GET(request: Request) {
         clicks: totalClicks,
         conversionRate: overallConversionRate,
         averageOrderValue,
+        withdrawals: totalWithdrawals,
+        withdrawalAmount: totalWithdrawalAmount,
+        usersWithConnectAccounts: usersWithConnect,
+        usersWithVerifiedIdentity,
+        connectAccountsWithPayouts,
       },
       growth: {
         newUsers,
@@ -236,6 +325,8 @@ export async function GET(request: Request) {
         clicks: clicksData,
         conversions: conversionData,
         users: usersData,
+        withdrawals: withdrawalsData,
+        withdrawalAmounts: withdrawalAmountsData,
       },
       topLinks: topLinks.map((link) => ({
         ...link,

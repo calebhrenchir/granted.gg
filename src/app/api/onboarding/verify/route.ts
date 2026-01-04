@@ -90,7 +90,7 @@ export async function POST(request: Request) {
         // Stripe Identity automatically appends the verification session ID as a query parameter
         // The parameter name is typically 'session_id' or it may be appended differently
         // We'll use the base URL and let Stripe append the session information
-        const returnUrl = `${baseUrl}/onboarding`;
+        const returnUrl = `app.${baseUrl}/onboarding`;
 
         // Create Stripe Identity VerificationSession
         const verificationSession = await stripe.identity.verificationSessions.create({

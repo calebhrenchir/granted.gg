@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ArrowDownRight, CreditCard, CheckCircle2 } from "lucide-react";
 
 function MetricCard({ title, value, loading }: { title: string, value: string | number, loading?: boolean }) {
     return (
@@ -35,6 +36,13 @@ interface AdminStats {
     clicksData: number[];
     conversionData: number[];
     overallConversionRate: number;
+    withdrawalsLast30Days: number;
+    totalWithdrawalAmount: number;
+    withdrawalsData: number[];
+    withdrawalAmountsData: number[];
+    usersWithConnectAccounts: number;
+    usersWithVerifiedIdentity: number;
+    connectAccountsWithPayouts: number;
 }
 
 export default function AdminDashboard() {
@@ -107,6 +115,11 @@ export default function AdminDashboard() {
                     <MetricCard title="Total Links" value={stats?.totalLinks ?? 0} loading={loading} />
                     <MetricCard title="Total Files" value={stats?.totalFiles ?? 0} loading={loading} />
                     <MetricCard title="Total Sales" value={stats?.totalSales ?? 0} loading={loading} />
+
+                    <MetricCard title="Withdrawals (30d)" value={stats?.withdrawalsLast30Days ?? 0} loading={loading} />
+                    <MetricCard title="Withdrawal Amount" value={stats?.totalWithdrawalAmount ? `$${stats.totalWithdrawalAmount.toFixed(2)}` : "$0.00"} loading={loading} />
+                    <MetricCard title="Connect Accounts" value={stats?.usersWithConnectAccounts ?? 0} loading={loading} />
+                    <MetricCard title="Verified Identity" value={stats?.usersWithVerifiedIdentity ?? 0} loading={loading} />
 
                     <div className="bg-white/5 border border-white/5 rounded-sm p-4 col-span-2">
                         <div className="flex flex-col mb-6">

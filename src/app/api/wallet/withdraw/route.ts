@@ -34,6 +34,7 @@ export async function POST(request: Request) {
         email: true,
         stripeConnectAccountId: true,
         isIdentityVerified: true,
+        isFrozen: true,
       },
     });
 
@@ -41,6 +42,14 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
+      );
+    }
+
+    // Check if user is frozen
+    if (user.isFrozen) {
+      return NextResponse.json(
+        { error: "Your account has been frozen. Please contact support for assistance." },
+        { status: 403 }
       );
     }
 
@@ -140,27 +149,11 @@ export async function POST(request: Request) {
           hasBankAccount,
         });
         
-        // Create account link for onboarding if needed
-        let accountLinkUrl = null;
-        try {
-          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://app.localhost:3000";
-          const accountLink = await stripe.accountLinks.create({
-            account: user.stripeConnectAccountId,
-            refresh_url: `${baseUrl}/wallet?refresh=true`,
-            return_url: `${baseUrl}/wallet?success=true`,
-            type: "account_onboarding",
-          });
-          accountLinkUrl = accountLink.url;
-        } catch (linkError) {
-          console.error("Error creating account link:", linkError);
-        }
-        
         return NextResponse.json(
           { 
             error: errorMessage,
             needsOnboarding: true,
             requirements: missingRequirements,
-            accountLinkUrl,
             hasBankAccount,
           },
           { status: 400 }

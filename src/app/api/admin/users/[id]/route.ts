@@ -35,6 +35,7 @@ export async function GET(
         isAdmin: true,
         isIdentityVerified: true,
         platformFee: true,
+        isFrozen: true,
         createdAt: true,
         links: {
           select: {
@@ -138,6 +139,7 @@ export async function PATCH(
     if (body.country !== undefined) updateData.country = body.country;
     if (body.isAdmin !== undefined) updateData.isAdmin = body.isAdmin;
     if (body.isIdentityVerified !== undefined) updateData.isIdentityVerified = body.isIdentityVerified;
+    if (body.isFrozen !== undefined) updateData.isFrozen = body.isFrozen;
     if (body.platformFee !== undefined) {
       const fee = parseInt(body.platformFee);
       if (isNaN(fee) || fee < 0 || fee > 100) {
@@ -170,6 +172,7 @@ export async function PATCH(
         isAdmin: true,
         isIdentityVerified: true,
         platformFee: true,
+        isFrozen: true,
       },
     });
 

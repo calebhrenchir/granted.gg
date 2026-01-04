@@ -93,6 +93,8 @@ model User {
 
   platformFee Int @default(20) // Platform fee percentage (default 20%, whole numbers only)
 
+  isFrozen Boolean @default(false) // If true, user cannot withdraw funds or create links
+
   accounts  Account[]
   sessions  Session[]
   links     Link[]

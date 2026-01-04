@@ -13,33 +13,62 @@ function ProfileLink({ href, children, disabled }: { href: string, children: Rea
     )
 }
 
+function capitalizeWords(str: string | null | undefined): string {
+    if (!str) return "Not set";
+    return str
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+}
+
 export default function ProfilePage() {
     const { data: session, status } = useSession();
-    const [userData, setUserData] = useState<{ firstName?: string; lastName?: string; email: string } | null>(null);
+    const [userData, setUserData] = useState<{ firstName?: string; lastName?: string; email: string; bankName?: string | null } | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchUserData = async () => {
             if (status !== "authenticated") return;
 
             try {
-                const response = await fetch("/api/onboarding");
-                if (response.ok) {
-                    const data = await response.json();
+                setIsLoading(true);
+                const [onboardingResponse, walletResponse] = await Promise.all([
+                    fetch("/api/onboarding"),
+                    fetch("/api/wallet")
+                ]);
+
+                if (onboardingResponse.ok) {
+                    const data = await onboardingResponse.json();
                     if (data.success && data.data) {
-                        setUserData({
+                        setUserData(prev => ({
+                            ...prev,
                             firstName: data.data.firstName,
                             lastName: data.data.lastName,
                             email: session?.user?.email || "",
-                        });
+                        }));
+                    }
+                }
+
+                if (walletResponse.ok) {
+                    const walletData = await walletResponse.json();
+                    if (walletData.success) {
+                        setUserData(prev => ({
+                            firstName: prev?.firstName,
+                            lastName: prev?.lastName,
+                            email: prev?.email || session?.user?.email || "",
+                            bankName: walletData.bankName || null,
+                        }));
                     }
                 }
             } catch (err) {
                 console.error("Error fetching user data:", err);
+            } finally {
+                setIsLoading(false);
             }
         };
 
         fetchUserData();
-    }, [status]);
+    }, [status, session?.user?.email]);
 
     return (
         <div className="px-4 md:px-0 md:max-w-2xl mx-auto">
@@ -68,7 +97,11 @@ export default function ProfilePage() {
                             <p className="text-white/40 group-hover:text-white text-md font-semibold transition-all duration-300 ease-in-out">Login Method</p>
                         </div>
                         <div className="flex flex-row gap-4 items-center">
-                            <p className="text-white font-semibold text-md">{userData?.email || "Not set"}</p>
+                            {isLoading ? (
+                                <div className="h-5 w-24 bg-white/10 rounded animate-pulse"></div>
+                            ) : (
+                                <p className="text-white font-semibold text-md">{userData?.email || "Not set"}</p>
+                            )}
                             <ChevronRight className="h-4.5 w-4.5 text-white/40 font-semibold group-hover:text-white transition-all duration-300 ease-in-out" />
                         </div>
                     </ProfileLink>
@@ -79,11 +112,15 @@ export default function ProfilePage() {
                             <p className="text-white/40 group-hover:text-white text-md font-semibold transition-all duration-300 ease-in-out">Personal Identity</p>
                         </div>
                         <div className="flex flex-row gap-4 items-center">
-                            <p className="text-white font-semibold text-md">
-                                {userData?.firstName && userData?.lastName 
-                                    ? `${userData.firstName} ${userData.lastName}` 
-                                    : "Not set"}
-                            </p>
+                            {isLoading ? (
+                                <div className="h-5 w-32 bg-white/10 rounded animate-pulse"></div>
+                            ) : (
+                                <p className="text-white font-semibold text-md">
+                                    {userData?.firstName && userData?.lastName 
+                                        ? `${userData.firstName} ${userData.lastName}` 
+                                        : "Not set"}
+                                </p>
+                            )}
                             <ChevronRight className="h-4.5 w-4.5 text-white/40 font-semibold group-hover:text-white transition-all duration-300 ease-in-out" />
                         </div>
                     </ProfileLink>
@@ -94,7 +131,11 @@ export default function ProfilePage() {
                             <p className="text-white/40 group-hover:text-white text-md font-semibold transition-all duration-300 ease-in-out">Banking Information</p>
                         </div>
                         <div className="flex flex-row gap-4 items-center">
-                            <p className="text-white font-semibold text-md">Capital One</p>
+                            {isLoading ? (
+                                <div className="h-5 w-28 bg-white/10 rounded animate-pulse"></div>
+                            ) : (
+                                <p className="text-white font-semibold text-md">{capitalizeWords(userData?.bankName)}</p>
+                            )}
                             <ChevronRight className="h-4.5 w-4.5 text-white/40 font-semibold group-hover:text-white transition-all duration-300 ease-in-out" />
                         </div>
                     </ProfileLink>

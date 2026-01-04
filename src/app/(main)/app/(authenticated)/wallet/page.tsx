@@ -263,12 +263,6 @@ export default function WalletPage() {
                                 }
                             }
                             
-                            // If onboarding is needed and we have an account link, redirect to it
-                            if (data.needsOnboarding && data.accountLinkUrl) {
-                                window.location.href = data.accountLinkUrl;
-                                return;
-                            }
-                            
                             throw new Error(data.error || "Failed to process withdrawal");
                         }
 
