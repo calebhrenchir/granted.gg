@@ -405,7 +405,7 @@ function UsersPageContent() {
                             <Shield className="size-4 text-blue-500" />
                           )}
                           {user.isFrozen && (
-                            <XCircle className="size-4 text-red-500" title="Frozen" />
+                            <XCircle className="size-4 text-red-500" />
                           )}
                         </div>
                       </TableCell>
