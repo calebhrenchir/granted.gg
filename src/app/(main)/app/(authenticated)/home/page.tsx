@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { invalidateLinksListCache } from "@/lib/cache";
 import NeedsOnboardingModal from "@/components/modal/needs-onboarding";
 import { NoPreview } from "@/components/no-preview";
+import SequenceCanvas from "@/components/marketing/canvases/sequence-canvas";
 
 export default function HomePage() {
     const { data: session, status } = useSession();
@@ -458,15 +459,29 @@ export default function HomePage() {
                         showPriceSection ? "opacity-100" : "opacity-0"
                     )}>
                     {selectedFiles.length === 0 ? (
-                        <button 
-                            onClick={handleButtonClick}
-                            className={cn(
-                                "flex flex-col w-[200px] h-[200px] bg-transparent border-2 border-white/30 border-dashed rounded-lg items-center justify-center",
-                                "hover:bg-white/10 hover:border-white/50 transition-all duration-100 cursor-pointer"
-                            )}
-                        >
-                            <Plus className="w-24 h-24 text-white/30" />
-                        </button>
+                        <div className="flex flex-col items-center justify-center md:flex-row">
+                            <h1 className="">{process.env.NEXT_PUBLIC_BASE_URL}</h1>
+                            <button className="rotate-[-6.25deg] [--x:180px] [--rotate:-6.25deg] group/button pointer-events-auto h-[200px] w-[200px] min-w-[200px] rounded-xl p-3 transition-transform duration-300 hover:rotate-[-0.5deg] bg-neutral-800 shadow-[0px_0px_0px_1px_rgba(255,255,255,0.1)] cursor-pointer">
+                                <div className="relative flex h-full w-full items-center justify-center rounded-lg transition-all duration-300 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:rounded-lg after:border after:border-[rgba(0,0,0,0.05)] group-hover/button:bg-white/[0.02]">
+                                    <SequenceCanvas
+                                    sequencePath="upload-box-one"
+                                    frameCount={138}
+                                    fps={60}
+                                    canvasWidth={200}
+                                    canvasHeight={200}
+                                    scale="scale-100"
+                                    imageFormat="webp"
+                                    className="z-10"
+                                    />
+                                </div>
+                            </button>
+                            <button className="rotate-[8.46deg] z-[2] [--rotate:15.85deg] group/button pointer-events-auto h-[200px] w-[200px] min-w-[200px] rounded-xl p-3 transition-transform duration-300 hover:rotate-[-0.5deg] bg-neutral-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1)] cursor-pointer">
+                                <div className="relative flex h-full w-full items-center justify-center rounded-lg transition-all duration-300 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:rounded-lg after:border after:border-[rgba(0,0,0,0.05)] group-hover/button:bg-white/[0.02]"></div>
+                            </button>
+                            <button className="rotate-[-6.25deg] [x--:-190px] [--rotate:15deg] group/button pointer-events-auto h-[200px] w-[200px] min-w-[200px] rounded-xl p-3 transition-transform duration-300 hover:rotate-[-0.5deg] bg-neutral-800 shadow-[0px_0px_0px_2px_rgba(255,255,255,0.1)] cursor-pointer">
+                                <div className="relative flex h-full w-full items-center justify-center rounded-lg transition-all duration-300 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:rounded-lg after:border after:border-[rgba(0,0,0,0.05)] group-hover/button:bg-white/[0.02]"></div>
+                            </button>
+                        </div>
                     ) : (
                         <div className="flex flex-col items-center gap-3">
                             <div className="flex flex-row items-center justify-center gap-3 flex-wrap w-full">
@@ -776,3 +791,14 @@ export default function HomePage() {
        </div>
     )
 }
+{/*}
+                        <button 
+                            onClick={handleButtonClick}
+                            className={cn(
+                                "flex flex-col w-[200px] h-[200px] bg-transparent border-2 border-white/30 border-dashed rounded-lg items-center justify-center",
+                                "hover:bg-white/10 hover:border-white/50 transition-all duration-100 cursor-pointer"
+                            )}
+                        >
+                            <Plus className="w-24 h-24 text-white/30" />
+                        </button>
+                        {*/}

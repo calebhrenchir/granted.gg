@@ -3,7 +3,8 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import sharp from "sharp";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { writeFile, unlink, readFile } from "fs/promises";
+import { writeFile, unlink, readFile, access } from "fs/promises";
+import { constants } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 
@@ -150,54 +151,84 @@ export async function uploadBlurredVideoThumbnail(
   file: File,
   key: string
 ): Promise<string | null> {
-  if (!file.type.startsWith("video/")) {
+  console.log(`[uploadBlurredVideoThumbnail] Called for file: ${file.name}, key: ${key}`);
+  
+  // Check if it's a video by MIME type or file extension
+  const isVideoByType = file.type.startsWith("video/");
+  const isVideoByExtension = /\.(mp4|webm|mov|avi|mkv|flv|wmv|m4v|3gp|ogv)$/i.test(file.name);
+  
+  if (!isVideoByType && !isVideoByExtension) {
+    console.warn(`File ${file.name} with type ${file.type} is not detected as a video`);
     throw new Error("File must be a video");
   }
+  
+  console.log(`[uploadBlurredVideoThumbnail] Video detection: MIME type=${file.type}, isVideoByType=${isVideoByType}, isVideoByExtension=${isVideoByExtension}`);
 
   // Check if ffmpeg is available first
+  console.log(`[uploadBlurredVideoThumbnail] Checking if ffmpeg is available...`);
   try {
-    await execAsync("ffmpeg -version");
+    const ffmpegVersion = await execAsync("ffmpeg -version");
+    console.log(`[uploadBlurredVideoThumbnail] FFmpeg is available: ${ffmpegVersion.stdout.substring(0, 50)}...`);
   } catch (error) {
+    console.error(`[uploadBlurredVideoThumbnail] FFmpeg is not available:`, error);
     console.warn("FFmpeg is not available, skipping video thumbnail generation");
     return null;
   }
 
   // Create temporary files for processing
   const tempDir = tmpdir();
-  const tempVideoPath = join(tempDir, `video-${Date.now()}-${Math.random().toString(36).substring(7)}.${key.split('.').pop()}`);
+  // Get file extension from file name, fallback to key if needed
+  const fileExtension = file.name.split('.').pop() || key.split('.').pop() || 'mp4';
+  const tempVideoPath = join(tempDir, `video-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExtension}`);
   const tempThumbnailPath = join(tempDir, `thumb-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`);
 
   try {
+    console.log(`Starting video thumbnail generation for ${file.name}, temp path: ${tempVideoPath}`);
+    
     // Write video file to temp location
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     await writeFile(tempVideoPath, buffer);
+    console.log(`Video file written to temp location: ${tempVideoPath}`);
 
     // Extract thumbnail at 1 second using ffmpeg
     try {
       await execAsync(
         `ffmpeg -i "${tempVideoPath}" -ss 00:00:01 -vframes 1 -vf "scale=120:120:force_original_aspect_ratio=decrease" "${tempThumbnailPath}" -y`
       );
+      console.log(`Thumbnail extracted successfully to: ${tempThumbnailPath}`);
     } catch (ffmpegError) {
       // If ffmpeg fails, try alternative approach or use first frame
+      console.warn(`First ffmpeg attempt failed, trying alternative: ${ffmpegError}`);
       try {
         await execAsync(
           `ffmpeg -i "${tempVideoPath}" -vframes 1 -vf "scale=120:120:force_original_aspect_ratio=decrease" "${tempThumbnailPath}" -y`
         );
+        console.log(`Thumbnail extracted successfully (alternative method) to: ${tempThumbnailPath}`);
       } catch (altError) {
-        console.warn(`FFmpeg failed to extract thumbnail: ${altError}`);
+        console.error(`FFmpeg failed to extract thumbnail: ${altError}`);
         return null;
       }
     }
 
+    // Check if thumbnail file exists before reading
+    try {
+      await access(tempThumbnailPath, constants.F_OK);
+    } catch (error) {
+      console.error(`Thumbnail file does not exist at ${tempThumbnailPath}`);
+      return null;
+    }
+
     // Read the thumbnail
     const thumbnailBuffer = await readFile(tempThumbnailPath);
+    console.log(`Thumbnail read successfully, size: ${thumbnailBuffer.length} bytes`);
 
     // Blur the thumbnail using sharp
     const blurredBuffer = await sharp(thumbnailBuffer)
       .blur(6)
       .jpeg({ quality: 100 })
       .toBuffer();
+    console.log(`Thumbnail blurred successfully, size: ${blurredBuffer.length} bytes`);
 
     // Generate blurred key by appending -blurred before the file extension
     const blurredKey = key.replace(/\.[^/.]+$/, "-blurred.jpg");
@@ -213,7 +244,11 @@ export async function uploadBlurredVideoThumbnail(
     console.log(`Uploaded blurred video thumbnail to S3: ${blurredKey}`);
     return blurredKey;
   } catch (error) {
-    console.error("Error generating video thumbnail:", error);
+    console.error(`Error generating video thumbnail for ${file.name}:`, error);
+    if (error instanceof Error) {
+      console.error(`Error message: ${error.message}`);
+      console.error(`Error stack: ${error.stack}`);
+    }
     return null;
   } finally {
     // Clean up temporary files
@@ -222,6 +257,229 @@ export async function uploadBlurredVideoThumbnail(
       await unlink(tempThumbnailPath).catch(() => {});
     } catch (error) {
       console.error("Error cleaning up temp files:", error);
+    }
+  }
+}
+
+export async function createVideoPreview(
+  originalS3Key: string,
+  duration: number = 3
+): Promise<string | null> {
+  console.log(`[createVideoPreview] Creating ${duration}s preview for ${originalS3Key}`);
+  
+  // Check if ffmpeg is available
+  try {
+    await execAsync("ffmpeg -version");
+  } catch (error) {
+    console.error(`[createVideoPreview] FFmpeg is not available:`, error);
+    return null;
+  }
+
+  // Create temporary files for processing
+  const tempDir = tmpdir();
+  const fileExtension = originalS3Key.split('.').pop() || 'mp4';
+  const tempInputPath = join(tempDir, `input-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExtension}`);
+  const tempOutputPath = join(tempDir, `preview-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExtension}`);
+
+  try {
+    // Download original file from S3
+    console.log(`[createVideoPreview] Downloading original file from S3: ${originalS3Key}`);
+    const getCommand = new GetObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: originalS3Key,
+    });
+    
+    const response = await s3Client.send(getCommand);
+    if (!response.Body) {
+      throw new Error("No file body returned from S3");
+    }
+    
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of response.Body as any) {
+      chunks.push(chunk);
+    }
+    const fileBuffer = Buffer.concat(chunks);
+    await writeFile(tempInputPath, fileBuffer);
+    console.log(`[createVideoPreview] Original file downloaded, size: ${fileBuffer.length} bytes`);
+
+    // Extract first N seconds using ffmpeg
+    console.log(`[createVideoPreview] Extracting first ${duration} seconds...`);
+    try {
+      await execAsync(
+        `ffmpeg -i "${tempInputPath}" -t ${duration} -c copy "${tempOutputPath}" -y`
+      );
+      console.log(`[createVideoPreview] Preview extracted successfully`);
+    } catch (ffmpegError) {
+      // If copy codec fails, try re-encoding
+      console.warn(`[createVideoPreview] Copy codec failed, trying re-encode: ${ffmpegError}`);
+      try {
+        await execAsync(
+          `ffmpeg -i "${tempInputPath}" -t ${duration} -c:v libx264 -c:a aac "${tempOutputPath}" -y`
+        );
+        console.log(`[createVideoPreview] Preview extracted successfully (re-encoded)`);
+      } catch (altError) {
+        console.error(`[createVideoPreview] FFmpeg failed to extract preview: ${altError}`);
+        return null;
+      }
+    }
+
+    // Check if preview file exists
+    try {
+      await access(tempOutputPath, constants.F_OK);
+    } catch (error) {
+      console.error(`[createVideoPreview] Preview file does not exist at ${tempOutputPath}`);
+      return null;
+    }
+
+    // Read the preview file
+    const previewBuffer = await readFile(tempOutputPath);
+    console.log(`[createVideoPreview] Preview file read, size: ${previewBuffer.length} bytes`);
+
+    // Generate preview key
+    const previewKey = originalS3Key.replace(/\.[^/.]+$/, `-preview.${fileExtension}`);
+
+    // Upload preview to S3
+    const putCommand = new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: previewKey,
+      Body: previewBuffer,
+      ContentType: `video/${fileExtension === 'mov' ? 'quicktime' : fileExtension}`,
+    });
+
+    await s3Client.send(putCommand);
+    console.log(`[createVideoPreview] Preview uploaded to S3: ${previewKey}`);
+    return previewKey;
+  } catch (error) {
+    console.error(`[createVideoPreview] Error creating video preview:`, error);
+    if (error instanceof Error) {
+      console.error(`[createVideoPreview] Error message: ${error.message}`);
+      console.error(`[createVideoPreview] Error stack: ${error.stack}`);
+    }
+    return null;
+  } finally {
+    // Clean up temporary files
+    try {
+      await unlink(tempInputPath).catch(() => {});
+      await unlink(tempOutputPath).catch(() => {});
+    } catch (error) {
+      console.error("[createVideoPreview] Error cleaning up temp files:", error);
+    }
+  }
+}
+
+export async function createAudioPreview(
+  originalS3Key: string,
+  duration: number = 3
+): Promise<string | null> {
+  console.log(`[createAudioPreview] Creating ${duration}s preview for ${originalS3Key}`);
+  
+  // Check if ffmpeg is available
+  try {
+    await execAsync("ffmpeg -version");
+  } catch (error) {
+    console.error(`[createAudioPreview] FFmpeg is not available:`, error);
+    return null;
+  }
+
+  // Create temporary files for processing
+  const tempDir = tmpdir();
+  const fileExtension = originalS3Key.split('.').pop() || 'mp3';
+  const tempInputPath = join(tempDir, `input-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExtension}`);
+  const tempOutputPath = join(tempDir, `preview-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExtension}`);
+
+  try {
+    // Download original file from S3
+    console.log(`[createAudioPreview] Downloading original file from S3: ${originalS3Key}`);
+    const getCommand = new GetObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: originalS3Key,
+    });
+    
+    const response = await s3Client.send(getCommand);
+    if (!response.Body) {
+      throw new Error("No file body returned from S3");
+    }
+    
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of response.Body as any) {
+      chunks.push(chunk);
+    }
+    const fileBuffer = Buffer.concat(chunks);
+    await writeFile(tempInputPath, fileBuffer);
+    console.log(`[createAudioPreview] Original file downloaded, size: ${fileBuffer.length} bytes`);
+
+    // Extract first N seconds using ffmpeg
+    console.log(`[createAudioPreview] Extracting first ${duration} seconds...`);
+    try {
+      await execAsync(
+        `ffmpeg -i "${tempInputPath}" -t ${duration} -c copy "${tempOutputPath}" -y`
+      );
+      console.log(`[createAudioPreview] Preview extracted successfully`);
+    } catch (ffmpegError) {
+      // If copy codec fails, try re-encoding
+      console.warn(`[createAudioPreview] Copy codec failed, trying re-encode: ${ffmpegError}`);
+      try {
+        await execAsync(
+          `ffmpeg -i "${tempInputPath}" -t ${duration} -c:a libmp3lame "${tempOutputPath}" -y`
+        );
+        console.log(`[createAudioPreview] Preview extracted successfully (re-encoded)`);
+      } catch (altError) {
+        console.error(`[createAudioPreview] FFmpeg failed to extract preview: ${altError}`);
+        return null;
+      }
+    }
+
+    // Check if preview file exists
+    try {
+      await access(tempOutputPath, constants.F_OK);
+    } catch (error) {
+      console.error(`[createAudioPreview] Preview file does not exist at ${tempOutputPath}`);
+      return null;
+    }
+
+    // Read the preview file
+    const previewBuffer = await readFile(tempOutputPath);
+    console.log(`[createAudioPreview] Preview file read, size: ${previewBuffer.length} bytes`);
+
+    // Generate preview key
+    const previewKey = originalS3Key.replace(/\.[^/.]+$/, `-preview.${fileExtension}`);
+
+    // Determine content type based on extension
+    const contentTypeMap: { [key: string]: string } = {
+      'mp3': 'audio/mpeg',
+      'wav': 'audio/wav',
+      'm4a': 'audio/mp4',
+      'aac': 'audio/aac',
+      'ogg': 'audio/ogg',
+      'flac': 'audio/flac',
+    };
+    const contentType = contentTypeMap[fileExtension] || 'audio/mpeg';
+
+    // Upload preview to S3
+    const putCommand = new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: previewKey,
+      Body: previewBuffer,
+      ContentType: contentType,
+    });
+
+    await s3Client.send(putCommand);
+    console.log(`[createAudioPreview] Preview uploaded to S3: ${previewKey}`);
+    return previewKey;
+  } catch (error) {
+    console.error(`[createAudioPreview] Error creating audio preview:`, error);
+    if (error instanceof Error) {
+      console.error(`[createAudioPreview] Error message: ${error.message}`);
+      console.error(`[createAudioPreview] Error stack: ${error.stack}`);
+    }
+    return null;
+  } finally {
+    // Clean up temporary files
+    try {
+      await unlink(tempInputPath).catch(() => {});
+      await unlink(tempOutputPath).catch(() => {});
+    } catch (error) {
+      console.error("[createAudioPreview] Error cleaning up temp files:", error);
     }
   }
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getPresignedS3Url } from "@/lib/s3";
+import { getPresignedS3Url, createVideoPreview, createAudioPreview } from "@/lib/s3";
 
 export async function PATCH(
   request: Request,
@@ -49,6 +49,36 @@ export async function PATCH(
     if (body.isCoverPhoto !== undefined) updateData.isCoverPhoto = body.isCoverPhoto;
     if (body.isPreviewable !== undefined) updateData.isPreviewable = body.isPreviewable;
 
+    // If setting as previewable and it's a video/audio file, generate preview if it doesn't exist
+    if (body.isPreviewable === true && !file.previewS3Key) {
+      const isVideo = file.mimeType.startsWith("video/");
+      const isAudio = file.mimeType.startsWith("audio/");
+      
+      if (isVideo || isAudio) {
+        console.log(`[PATCH /api/files/${fileId}] Generating preview for ${isVideo ? 'video' : 'audio'} file: ${file.name}`);
+        try {
+          let previewS3Key: string | null = null;
+          
+          if (isVideo) {
+            previewS3Key = await createVideoPreview(file.s3Key, 3);
+          } else if (isAudio) {
+            previewS3Key = await createAudioPreview(file.s3Key, 3);
+          }
+          
+          if (previewS3Key) {
+            updateData.previewS3Key = previewS3Key;
+            console.log(`[PATCH /api/files/${fileId}] Preview generated successfully: ${previewS3Key}`);
+          } else {
+            console.warn(`[PATCH /api/files/${fileId}] Failed to generate preview, will use full file as fallback`);
+            // Continue without preview - will use full file as fallback
+          }
+        } catch (error) {
+          console.error(`[PATCH /api/files/${fileId}] Error generating preview:`, error);
+          // Continue without preview - will use full file as fallback
+        }
+      }
+    }
+
     // If setting as cover photo, unset all other cover photos for this link
     if (body.isCoverPhoto === true) {
       await prisma.file.updateMany({
@@ -80,6 +110,7 @@ export async function PATCH(
         size: true,
         s3Key: true,
         blurredS3Key: true,
+        previewS3Key: true,
         isCoverPhoto: true,
         isPreviewable: true,
         createdAt: true,

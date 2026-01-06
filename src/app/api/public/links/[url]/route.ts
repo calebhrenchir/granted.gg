@@ -119,12 +119,14 @@ export async function GET(
           }
         }
 
-        // If file is previewable, generate presigned URL for the actual file
+        // If file is previewable, generate presigned URL for preview file (or full file as fallback)
         if (file.isPreviewable) {
           try {
-            previewS3Url = await getPresignedS3Url(file.s3Key, 3600);
+            // Use previewS3Key if available (3-second clip), otherwise fall back to full file
+            const previewKey = file.previewS3Key || file.s3Key;
+            previewS3Url = await getPresignedS3Url(previewKey, 3600);
           } catch (error) {
-            console.error(`Failed to generate presigned URL for preview file ${file.s3Key}:`, error);
+            console.error(`Failed to generate presigned URL for preview file:`, error);
           }
         }
 

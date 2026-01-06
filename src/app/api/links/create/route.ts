@@ -126,9 +126,19 @@ export async function POST(request: Request) {
       await uploadFileToS3(file, s3Key);
 
       let blurredS3Key: string | null = null;
-      const isImage = file.type.startsWith("image/");
-      const isVideo = file.type.startsWith("video/");
+      
+      // Detect file type from MIME type or file extension
+      const isImage = file.type.startsWith("image/") || 
+        /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)$/i.test(file.name);
+      const isVideo = file.type.startsWith("video/") || 
+        /\.(mp4|webm|mov|avi|mkv|flv|wmv|m4v|3gp|ogv)$/i.test(file.name);
       const isFirstMedia = (isImage || isVideo) && !firstMediaFound;
+
+      console.log(`Processing file ${i + 1}/${files.length}: ${file.name}`);
+      console.log(`  - MIME type: ${file.type}`);
+      console.log(`  - Is image: ${isImage}`);
+      console.log(`  - Is video: ${isVideo}`);
+      console.log(`  - Is first media: ${isFirstMedia}`);
 
       // Upload blurred version if it's an image
       if (isImage) {
@@ -149,24 +159,34 @@ export async function POST(request: Request) {
       } 
       // Upload blurred thumbnail if it's a video
       else if (isVideo) {
+        console.log(`[ROUTE] Attempting to create blurred video thumbnail for ${file.name}...`);
+        console.log(`[ROUTE] About to call uploadBlurredVideoThumbnail with s3Key: ${s3Key}`);
         try {
+          console.log(`[ROUTE] Calling uploadBlurredVideoThumbnail...`);
           blurredS3Key = await uploadBlurredVideoThumbnail(file, s3Key);
+          console.log(`[ROUTE] uploadBlurredVideoThumbnail returned: ${blurredS3Key}`);
           if (blurredS3Key) {
-            console.log(`Created blurred video thumbnail for ${file.name}: ${blurredS3Key}`);
+            console.log(`[ROUTE] SUCCESS: Created blurred video thumbnail for ${file.name}: ${blurredS3Key}`);
             
             // Set first video's blurred thumbnail as cover photo
             if (isFirstMedia) {
               coverPhotoS3Key = blurredS3Key;
               firstMediaFound = true;
-              console.log(`Set cover photo to blurred video thumbnail: ${blurredS3Key}`);
+              console.log(`[ROUTE] Set cover photo to blurred video thumbnail: ${blurredS3Key}`);
             }
           } else {
-            console.warn(`Could not create blurred video thumbnail for ${file.name} - ffmpeg may not be available`);
+            console.warn(`[ROUTE] WARNING: Could not create blurred video thumbnail for ${file.name} - uploadBlurredVideoThumbnail returned null`);
           }
         } catch (error) {
-          console.error(`Failed to create blurred video thumbnail for ${file.name}:`, error);
+          console.error(`[ROUTE] ERROR: Failed to create blurred video thumbnail for ${file.name}:`, error);
+          if (error instanceof Error) {
+            console.error(`[ROUTE] Error message: ${error.message}`);
+            console.error(`[ROUTE] Error stack: ${error.stack}`);
+          }
           // Continue without blurred version - original will be used
         }
+      } else {
+        console.log(`File ${file.name} is not an image or video, skipping blurred thumbnail generation`);
       }
 
       // Create file record with blurredS3Key (null for non-media or if blur creation failed)

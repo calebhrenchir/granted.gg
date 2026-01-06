@@ -61,7 +61,7 @@ export default function SequenceCanvas({
               console.warn(`Failed to load frame ${i} from ${sequencePath}`);
               resolve(); // Continue even if one frame fails
             };
-            img.src = `/sequences/${sequencePath}/${String(i).padStart(6, '0')}.${imageFormat}`;
+            img.src = `https://granted.gg/sequences/${sequencePath}/${String(i).padStart(6, '0')}.${imageFormat}`;
           });
           batchPromises.push(promise);
         }

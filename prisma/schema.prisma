@@ -53,6 +53,7 @@ model File {
   
   s3Key         String
   blurredS3Key  String?
+  previewS3Key  String?
 
   isCoverPhoto  Boolean  @default(false)
   isPreviewable Boolean  @default(false)
