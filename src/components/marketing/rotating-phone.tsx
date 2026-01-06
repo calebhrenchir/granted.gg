@@ -28,7 +28,7 @@ export default function RotatingPhone() {
                }}>
                  <div className="absolute inset-0 rounded-[80px] bg-green-500/0 shadow-inner"></div>
                  <div className="absolute inset-0 flex items-center justify-center fade-in">
-                   <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50 backdrop-blur-sm"></div>
+                   <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50"></div>
                  </div>
                </div>
               <div
@@ -41,7 +41,7 @@ export default function RotatingPhone() {
               >
                 <div className="absolute inset-0 rounded-[80px] bg-green-500/0 shadow-inner"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50 backdrop-blur-sm"></div>
+                  <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50"></div>
                 </div>
               </div>
               <div
@@ -54,7 +54,7 @@ export default function RotatingPhone() {
               >
                 <div className="absolute inset-0 rounded-[80px] bg-green-500/20 shadow-inner"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50 backdrop-blur-sm"></div>
+                  <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50"></div>
                 </div>
               </div>
               <div
@@ -67,7 +67,7 @@ export default function RotatingPhone() {
               >
                 <div className="absolute inset-0 rounded-[80px] bg-green-500/20 shadow-inner"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50 backdrop-blur-sm"></div>
+                  <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50"></div>
                 </div>
               </div>
               <div
@@ -78,9 +78,9 @@ export default function RotatingPhone() {
                   backgroundPosition: "center",
                 }}
               >
-                <div className="absolute inset-0 rounded-[80px] bg-green-500/20 shadow-inner"></div>
+                <div className="absolute inset-0 rounded-[80px] shadow-inner"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50 backdrop-blur-sm"></div>
+                  <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50"></div>
                 </div>
               </div>
               <div
@@ -93,7 +93,7 @@ export default function RotatingPhone() {
               >
                 <div className="absolute inset-0 rounded-[80px] bg-green-500/20 shadow-inner"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50 backdrop-blur-sm"></div>
+                  <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50"></div>
                 </div>
               </div>
               <div
@@ -106,7 +106,7 @@ export default function RotatingPhone() {
               >
                 <div className="absolute inset-0 rounded-[80px] bg-green-500/20 shadow-inner"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50 backdrop-blur-sm"></div>
+                  <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50"></div>
                 </div>
               </div>
               <div
@@ -119,7 +119,7 @@ export default function RotatingPhone() {
               >
                 <div className="absolute inset-0 rounded-[80px] bg-green-500/20 shadow-inner"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50 backdrop-blur-sm"></div>
+                  <div className="h-[920px] w-[472px] rounded-[80px] border-4 border-white/50"></div>
                 </div>
               </div>
             </div>
