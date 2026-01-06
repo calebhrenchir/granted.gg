@@ -461,25 +461,47 @@ export default function HomePage() {
                     {selectedFiles.length === 0 ? (
                         <div className="flex flex-col items-center justify-center md:flex-row">
                             <h1 className="">{process.env.NEXT_PUBLIC_BASE_URL}</h1>
-                            <button className="rotate-[-6.25deg] [--x:180px] [--rotate:-6.25deg] group/button pointer-events-auto h-[200px] w-[200px] min-w-[200px] rounded-xl p-3 transition-transform duration-300 hover:rotate-[-0.5deg] bg-neutral-800 shadow-[0px_0px_0px_1px_rgba(255,255,255,0.1)] cursor-pointer">
+                            <button className="rotate-[-6.25deg] [--x:180px] [--rotate:-6.25deg] group/button pointer-events-auto h-[200px] w-[200px] min-w-[200px] rounded-xl p-3 transition-transform duration-300 hover:rotate-[-0.5deg] bg-neutral-800/10 shadow-[0px_0px_0px_1px_rgba(255,255,255,0.1)] cursor-pointer">
                                 <div className="relative flex h-full w-full items-center justify-center rounded-lg transition-all duration-300 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:rounded-lg after:border after:border-[rgba(0,0,0,0.05)] group-hover/button:bg-white/[0.02]">
                                     <SequenceCanvas
                                     sequencePath="upload-box-one"
                                     frameCount={138}
                                     fps={60}
-                                    canvasWidth={200}
-                                    canvasHeight={200}
-                                    scale="scale-100"
+                                    canvasWidth={300}
+                                    canvasHeight={300}
+                                    scale="scale-220"
                                     imageFormat="webp"
                                     className="z-10"
                                     />
                                 </div>
                             </button>
-                            <button className="rotate-[8.46deg] z-[2] [--rotate:15.85deg] group/button pointer-events-auto h-[200px] w-[200px] min-w-[200px] rounded-xl p-3 transition-transform duration-300 hover:rotate-[-0.5deg] bg-neutral-800 shadow-[0px_0px_0px_1px_rgba(0,0,0,0.1)] cursor-pointer">
-                                <div className="relative flex h-full w-full items-center justify-center rounded-lg transition-all duration-300 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:rounded-lg after:border after:border-[rgba(0,0,0,0.05)] group-hover/button:bg-white/[0.02]"></div>
+                            <button className="rotate-[8.46deg] z-[2] [--rotate:15.85deg] group/button pointer-events-auto h-[200px] w-[200px] min-w-[200px] rounded-xl p-3 transition-transform duration-300 hover:rotate-[-0.5deg] bg-neutral-800/10 shadow-[0px_0px_0px_1px_rgba(255,255,255,0.1)] cursor-pointer">
+                                <div className="relative flex h-full w-full items-center justify-center rounded-lg transition-all duration-300 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:rounded-lg after:border after:border-[rgba(0,0,0,0.05)] group-hover/button:bg-white/[0.02]">
+                                    <SequenceCanvas
+                                    sequencePath="upload-box-two"
+                                    frameCount={78}
+                                    fps={60}
+                                    canvasWidth={300}
+                                    canvasHeight={300}
+                                    scale="scale-220"
+                                    imageFormat="webp"
+                                    className="z-10"
+                                    />
+                                </div>
                             </button>
-                            <button className="rotate-[-6.25deg] [x--:-190px] [--rotate:15deg] group/button pointer-events-auto h-[200px] w-[200px] min-w-[200px] rounded-xl p-3 transition-transform duration-300 hover:rotate-[-0.5deg] bg-neutral-800 shadow-[0px_0px_0px_2px_rgba(255,255,255,0.1)] cursor-pointer">
-                                <div className="relative flex h-full w-full items-center justify-center rounded-lg transition-all duration-300 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:rounded-lg after:border after:border-[rgba(0,0,0,0.05)] group-hover/button:bg-white/[0.02]"></div>
+                            <button className="rotate-[-6.25deg] [x--:-190px] [--rotate:15deg] group/button pointer-events-auto h-[200px] w-[200px] min-w-[200px] rounded-xl p-3 transition-transform duration-300 hover:rotate-[-0.5deg] bg-neutral-800/10 shadow-[0px_0px_0px_2px_rgba(255,255,255,0.1)] cursor-pointer">
+                                <div className="relative flex h-full w-full items-center justify-center rounded-lg transition-all duration-300 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:rounded-lg after:border after:border-[rgba(0,0,0,0.05)] group-hover/button:bg-white/[0.02]">
+                                    <SequenceCanvas
+                                    sequencePath="upload-box-three"
+                                    frameCount={106}
+                                    fps={60}
+                                    canvasWidth={300}
+                                    canvasHeight={300}
+                                    scale="scale-220"
+                                    imageFormat="webp"
+                                    className="z-10"
+                                    />
+                                </div>
                             </button>
                         </div>
                     ) : (
