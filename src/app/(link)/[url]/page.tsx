@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { redirect, useParams, useRouter } from "next/navigation";
 import { Loader2, File, Image, Video, Music, FileText, FileCode, Download, CheckCircle2, ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
 import { calculatePriceWithFee, dollarsToCents, centsToDollars } from "@/lib/stripe";
 import { LinkCoverOverlay } from "@/components/link-cover-overlay";
@@ -357,11 +357,7 @@ export default function PublicLinkPage() {
     }
 
     if (error || !link) {
-        return (
-            <div className="flex justify-center items-center h-screen bg-black">
-                <p className="text-red-400">{error || "Link not found"}</p>
-            </div>
-        );
+        return redirect("/");
     }
 
     // TypeScript now knows link is not null after the early return
