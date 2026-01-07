@@ -8,13 +8,15 @@ import { centsToDollars, dollarsToCents, calculateSellerEarnings } from "./strip
  * @param amountInCents - The base amount in cents (only for purchases, before seller fee deduction)
  * @param stripePaymentIntentId - The Stripe Payment Intent ID (only for purchases)
  * @param platformFeePercent - The platform fee percentage (e.g., 20 for 20%)
+ * @param customerEmail - The customer email (only for purchases)
  */
 export async function createActivityAndUpdateTotals(
   linkId: string,
   type: "click" | "purchase",
   amountInCents?: number,
   stripePaymentIntentId?: string,
-  platformFeePercent?: number
+  platformFeePercent?: number,
+  customerEmail?: string
 ) {
   return await prisma.$transaction(async (tx) => {
     // Create the activity
@@ -25,6 +27,7 @@ export async function createActivityAndUpdateTotals(
         amount: type === "purchase" && amountInCents !== undefined ? amountInCents : null,
         platformFee: type === "purchase" && platformFeePercent !== undefined ? platformFeePercent : null,
         stripePaymentIntentId: type === "purchase" ? stripePaymentIntentId : null,
+        customerEmail: type === "purchase" ? customerEmail || null : null,
       },
     });
 

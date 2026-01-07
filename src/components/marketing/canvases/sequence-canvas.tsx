@@ -170,7 +170,7 @@ export default function SequenceCanvas({
   }, [images, isLoading, fps, frameCount]);
 
   return (
-    <div className={cn('flex justify-center items-center w-full h-full', scale, className)}>
+    <div className={cn('flex justify-center items-center w-full h-full pointer-events-none', scale, className)}>
       <canvas
         ref={canvasRef}
         width={canvasWidth}

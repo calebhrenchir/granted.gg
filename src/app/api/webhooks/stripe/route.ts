@@ -74,7 +74,8 @@ export async function POST(request: Request) {
           "purchase",
           basePriceInCents,
           session.payment_intent as string,
-          platformFeePercent
+          platformFeePercent,
+          customerEmail || undefined
         );
 
         console.log(`Purchase recorded for link ${linkId}: ${basePriceInCents} cents`);

@@ -45,6 +45,10 @@ function AdminSidebarLinkDropdown({ href, children }: { href: string, children: 
                         {pathname.startsWith(`${href}/policies`) ? <CornerDownRight className="size-4" /> : null}
                             <span className="text-sm font-semibold">Policies</span>
                     </Link>
+                    <Link href={`${href}/blog-posts`} className="relative flex flex-row items-center gap-2 px-4 py-1 rounded-sm transition-colors duration-300 ease-in-out w-full text-white/50 hover:text-white hover:bg-white/5 cursor-pointer">
+                        {pathname.startsWith(`${href}/blog-posts`) ? <CornerDownRight className="size-4" /> : null}
+                            <span className="text-sm font-semibold">Blog Posts</span>
+                    </Link>
                 </div>
             )}
         </>

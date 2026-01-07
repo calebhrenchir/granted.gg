@@ -10,10 +10,10 @@ function hasSessionCookie(request: NextRequest): boolean {
 }
 
 // Extract subdomain from hostname
-function getSubdomain(hostname: string): 'app' | null {
+function getSubdomain(hostname: string): 'app' | 'lookup' | null {
   // Handle Vercel dev (uses localhost with port or vercel.app subdomains)
   // Handle production (granted.gg and subdomains)
-  // Handle local development (app.localhost)
+  // Handle local development (app.localhost, lookup.localhost)
   
   // Normalize hostname (remove port if present)
   const hostWithoutPort = hostname.split(':')[0];
@@ -21,6 +21,11 @@ function getSubdomain(hostname: string): 'app' | null {
   // Check for app subdomain
   if (hostWithoutPort.startsWith('app.') || hostWithoutPort === 'app.localhost') {
     return 'app';
+  }
+  
+  // Check for lookup subdomain
+  if (hostWithoutPort.startsWith('lookup.') || hostWithoutPort === 'lookup.localhost') {
+    return 'lookup';
   }
   
   return null;
@@ -40,9 +45,22 @@ export default async function proxy(request: NextRequest) {
   // Extract subdomain from the effective host
   const subdomain = getSubdomain(effectiveHost);
   const isAppSubdomain = subdomain === 'app';
+  const isLookupSubdomain = subdomain === 'lookup';
   
   // Get the pathname
   const pathname = url.pathname;
+  
+  // Handle lookup subdomain - route to /lookup
+  if (isLookupSubdomain) {
+    // Rewrite to /lookup route, keeping the pathname if it's not root
+    if (pathname === '/' || pathname === '') {
+      url.pathname = '/lookup';
+    } else if (!pathname.startsWith('/lookup')) {
+      // If pathname is something else, still route to /lookup
+      url.pathname = '/lookup';
+    }
+    return NextResponse.rewrite(url);
+  }
   
   if (isAppSubdomain) {
     const isLoginPage = pathname === '/login' || pathname === '/app/login';

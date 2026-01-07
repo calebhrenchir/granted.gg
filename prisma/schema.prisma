@@ -151,6 +151,7 @@ model Activity {
   amount                Int? // Stored in cents, only for purchases (base price before fees)
   platformFee           Int? // Platform fee percentage used at time of purchase (e.g., 20 for 20%)
   stripePaymentIntentId String?
+  customerEmail         String? // Customer email for purchases
   createdAt             DateTime @default(now())
 
   @@map("activities")
@@ -166,4 +167,19 @@ model Policy {
   updatedAt   DateTime @updatedAt
 
   @@map("policies")
+}
+
+model BlogPost {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  title       String
+  excerpt     String   // Short description/preview text
+  content     Json     // Array of paragraphs/content blocks
+  publishedAt DateTime
+  imageUrl    String?  // Optional featured image
+  author      String   // Author name
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("blog_posts")
 }

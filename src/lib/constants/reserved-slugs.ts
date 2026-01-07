@@ -48,4 +48,8 @@ export const RESERVED_SLUGS = [
     "messages",
     "network",
     "fraud",
+    "lookup",
+    "updates",
+    "purchase",
+    "purchases",
 ]

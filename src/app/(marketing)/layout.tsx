@@ -22,6 +22,8 @@ export default function MarketingLayout({
                         granted.gg
                         </span>
                         <div className="flex flex-col md:flex-row gap-4 md:gap-10">
+                            <Link href="https://lookup.granted.gg/" className="text-white/50 text-sm hover:text-white transition-colors duration-300 font-semibold">Lookup Purchases</Link>
+                            <Link href="/updates" className="text-white/50 text-sm hover:text-white transition-colors duration-300 font-semibold">Updates</Link>
                             <Link href="/terms" className="text-white/50 text-sm hover:text-white transition-colors duration-300 font-semibold">Terms</Link>
                             <Link href="/privacy" className="text-white/50 text-sm hover:text-white transition-colors duration-300 font-semibold">Privacy</Link>
                             <Link href="/removal" className="text-white/50 text-sm hover:text-white transition-colors duration-300 font-semibold">Removals</Link>
