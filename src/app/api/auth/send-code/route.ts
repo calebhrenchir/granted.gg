@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
+import { render } from "@react-email/render";
+import MagicCodeEmail from "@/emails/magic-code";
 
 export async function POST(request: Request) {
   try {
@@ -43,18 +45,19 @@ export async function POST(request: Request) {
     // Initialize Resend
     const resend = new Resend(process.env.RESEND_API_KEY);
 
+    // Render email template
+    const emailHtml = await render(
+      MagicCodeEmail({
+        code,
+      })
+    );
+
     // Send email via Resend
     const emailResult = await resend.emails.send({
-      from: 'no-reply@granted.gg',
+      from: process.env.RESEND_FROM_EMAIL || "Granted <no-reply@granted.gg>",
       to: email,
       subject: "Your login code",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #000;">Your login code</h1>
-          <p style="color: #333; font-size: 18px;">Your code is: <strong style="font-size: 24px; letter-spacing: 2px;">${code}</strong></p>
-          <p style="color: #666;">This code will expire in 10 minutes.</p>
-        </div>
-      `,
+      html: emailHtml,
     });
 
     if (emailResult.error) {

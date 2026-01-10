@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { redirect, useParams, useRouter } from "next/navigation";
-import { Loader2, File, Image, Video, Music, FileText, FileCode, Download, CheckCircle2, ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
+import { Loader2, File, Image, Video, Music, FileText, FileCode, Download, CheckCircle2, ChevronLeft, ChevronRight, Play, Pause, Flag } from "lucide-react";
 import { calculatePriceWithFee, dollarsToCents, centsToDollars } from "@/lib/stripe";
 import { LinkCoverOverlay } from "@/components/link-cover-overlay";
 import { NoPreview } from "@/components/no-preview";
 import confetti from "canvas-confetti";
+import ReportContentModal from "@/components/modal/report-content";
 
 interface FileData {
     id: string;
@@ -61,6 +62,9 @@ export default function PublicLinkPage() {
     const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
     const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({});
     const slideshowRef = useRef<HTMLDivElement>(null);
+    const [reportModalOpen, setReportModalOpen] = useState(false);
+    const [purchaserEmail, setPurchaserEmail] = useState<string>("");
+    const [hasReported, setHasReported] = useState(false);
     const [purchasedFiles, setPurchasedFiles] = useState<Array<{
         id: string;
         name: string;
@@ -197,10 +201,17 @@ export default function PublicLinkPage() {
         const urlParams = new URLSearchParams(window.location.search);
         const purchased = urlParams.get("purchased");
         const sessionId = urlParams.get("session_id");
+        const email = urlParams.get("email");
 
-        if (purchased === "true" && sessionId && link) {
-            // Fetch purchased files
-            fetchPurchasedFiles();
+        if (purchased === "true" && link) {
+            if (sessionId) {
+                // Fetch purchased files using session ID
+                fetchPurchasedFiles();
+            } else if (email) {
+                // Fetch purchased files using email verification
+                setPurchaserEmail(email);
+                fetchPurchasedFilesByEmail(email);
+            }
         }
     }, [link]);
 
@@ -239,6 +250,54 @@ export default function PublicLinkPage() {
             }
         } catch (err) {
             console.error("Error fetching purchased files:", err);
+        }
+    };
+
+    const fetchPurchasedFilesByEmail = async (email: string) => {
+        try {
+            // Check if confetti has already been shown for this email
+            const confettiKey = `confetti_shown_email_${email}`;
+            const hasShownConfetti = sessionStorage.getItem(confettiKey) === "true";
+            
+            const response = await fetch(`/api/public/links/${linkUrl}/verify-purchase?email=${encodeURIComponent(email)}`);
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: "Failed to verify purchase" }));
+                throw new Error(errorData.error || "Failed to verify purchase");
+            }
+
+            const data = await response.json();
+            if (data.success) {
+                setPurchasedFiles(data.files);
+                setPurchaserEmail(email);
+                // Check if user has already reported this link
+                if (link) {
+                    checkIfReported(link.id, email);
+                }
+                // Small delay to ensure real image can start loading
+                setTimeout(() => {
+                    setHasPurchased(true);
+                    // Only launch confetti if it hasn't been shown for this email
+                    if (!hasShownConfetti) {
+                        launchConfetti();
+                        sessionStorage.setItem(confettiKey, "true");
+                    }
+                }, 100);
+            }
+        } catch (err) {
+            console.error("Error fetching purchased files by email:", err);
+        }
+    };
+
+    const checkIfReported = async (linkId: string, email: string) => {
+        try {
+            const response = await fetch(`/api/reports/check?linkId=${linkId}&email=${encodeURIComponent(email)}`);
+            if (response.ok) {
+                const data = await response.json();
+                setHasReported(data.hasReported || false);
+            }
+        } catch (err) {
+            console.error("Error checking if reported:", err);
         }
     };
 
@@ -699,11 +758,30 @@ export default function PublicLinkPage() {
                     {hasPurchased ? (
                         <div className="w-full flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="flex flex-col items-center md:items-start gap-2">
-                                <div className="flex items-center gap-3">
-                                    <CheckCircle2 className="w-8 h-8 text-green-400" />
-                                    <h1 className="text-3xl font-bold text-white text-center md:text-left">
-                                        Unlocked!
-                                    </h1>
+                                <div className="flex flex-row justify-between w-full ">
+                                    <div className="flex items-center gap-3">
+                                        <CheckCircle2 className="w-8 h-8 text-green-400" />
+                                        <h1 className="text-3xl font-bold text-white text-center md:text-left">
+                                            Access Granted
+                                        </h1>
+                                    </div>
+
+                                    <div className="flex flex-row gap-2 items-center">
+                                        {hasReported ? (
+                                            <span className="text-white/50 text-sm flex items-center gap-1" title="You have already reported this link">
+                                                <Flag className="w-4 h-4" />
+                                                Reported
+                                            </span>
+                                        ) : (
+                                            <button 
+                                                onClick={() => setReportModalOpen(true)}
+                                                className="flex items-center justify-center p-2 rounded-lg transition-colors duration-200 text-red-300/50 hover:text-red-300 cursor-pointer font-semibold text-sm gap-1"
+                                                title="Report content"
+                                            >
+                                                <Flag className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="flex flex-row justify-between w-full items-center">
@@ -778,14 +856,14 @@ export default function PublicLinkPage() {
                         </div>
                     ) : (
                         <div className="w-full flex flex-col gap-5 max-w-md mx-auto">
-                            <div className="flex flex-row justify-between items-center">
-                                <h1 className="text-3xl font-bold text-white">
-                                        {linkData.name || `Link ${linkData.url}`}
-                                </h1>
-                                <p className="text-white/70 text-3xl font-semibold">
-                                    Total
-                                </p>
-                            </div>
+                                    <div className="flex flex-row justify-between items-center">
+                                        <h1 className="text-3xl font-bold text-white">
+                                                {linkData.name || `Link ${linkData.url}`}
+                                        </h1>
+                                        <p className="text-white/70 text-3xl font-semibold">
+                                            Total
+                                        </p>
+                                    </div>
 
                             <div className="flex flex-row justify-between items-center">
                                 <div className="flex flex-row gap-2">
@@ -885,6 +963,23 @@ export default function PublicLinkPage() {
                 </div>
             </div>
         </div>
+        {link && (
+            <ReportContentModal
+                linkId={link.id}
+                linkUrl={linkUrl}
+                reporterEmail={purchaserEmail}
+                open={reportModalOpen}
+                onOpenChange={(open) => {
+                    setReportModalOpen(open);
+                    if (!open) {
+                        // Refresh report status when modal closes
+                        if (link && purchaserEmail) {
+                            checkIfReported(link.id, purchaserEmail);
+                        }
+                    }
+                }}
+            />
+        )}
         </>
     );
 }

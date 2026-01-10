@@ -1,5 +1,4 @@
-import { Body, Container, Head, Html, Img, Preview, Section, Tailwind } from "@react-email/components";
-import Link from "next/link";
+import { Body, Container, Head, Html, Img, Link, Preview, Section, Tailwind } from "@react-email/components";
 
 export default function Layout({ preview, children }: { preview?: string; children: React.ReactNode}) {
     return (

@@ -60,9 +60,22 @@ export async function POST(request: Request) {
         
         if (verificationSession.status === "verified" && verificationSession.verified_outputs) {
           const verifiedOutputs = verificationSession.verified_outputs as any;
-          idNumber = verifiedOutputs?.id_number;
+          
+          // ID number can be in different locations depending on document type
+          idNumber = verifiedOutputs?.id_number || 
+                     verifiedOutputs?.ssn || 
+                     verifiedOutputs?.individual?.id_number;
+          
           documentFront = verifiedOutputs?.document?.front;
           documentBack = verifiedOutputs?.document?.back;
+          
+          // Log for debugging
+          console.log("Identity verification outputs:", {
+            hasIdNumber: !!idNumber,
+            idNumberLength: idNumber?.length,
+            hasDocument: !!(documentFront || documentBack),
+            verifiedOutputsKeys: Object.keys(verifiedOutputs || {}),
+          });
         }
       } catch (error) {
         console.error("Error retrieving Identity verification session:", error);
@@ -91,10 +104,15 @@ export async function POST(request: Request) {
     // Build individual update params
     const individualParams: any = {};
     
-    // Add ID number from Identity verification if available, otherwise use SSN last 4 if provided
+    // Add ID number from Identity verification if available
+    // Note: Stripe Connect requires the full id_number, not just last 4 digits
     if (idNumber) {
       individualParams.id_number = idNumber;
+      console.log("Adding id_number to Connect account from Identity verification");
     } else if (ssnLast4) {
+      // If we only have last 4, we can't satisfy the id_number requirement
+      // But we'll add it anyway in case Stripe accepts it
+      console.warn("Only SSN last 4 provided, but full id_number is required. Attempting to use ssn_last_4.");
       // Validate SSN last 4 (should be 4 digits)
       if (!/^\d{4}$/.test(ssnLast4)) {
         return NextResponse.json(
@@ -102,7 +120,17 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
+      // Try both id_number and ssn_last_4 - sometimes Stripe accepts ssn_last_4
       individualParams.ssn_last_4 = ssnLast4;
+    } else {
+      console.error("No ID number available from Identity verification and no SSN last 4 provided");
+      return NextResponse.json(
+        { 
+          error: "ID number is required. Please ensure your identity verification includes your SSN/ID number, or provide the last 4 digits of your SSN.",
+          requiresIdNumber: true,
+        },
+        { status: 400 }
+      );
     }
     
     // Add document from Identity verification if available

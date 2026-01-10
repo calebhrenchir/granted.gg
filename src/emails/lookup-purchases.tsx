@@ -1,97 +1,98 @@
-import {
-    Body,
-    Container,
-    Head,
-    Heading,
-    Html,
-    Link,
-    Preview,
-    Section,
-    Text,
-    Tailwind,
-} from "@react-email/components";
-import * as React from "react";
+import { Body, Head, Heading, Html, Link, Preview, Row, Column, Section, Tailwind, Text, Img } from "@react-email/components";
+import Layout from "./_components/email-layout";
 
 interface Purchase {
     url: string;
     name: string;
     price: number;
     purchasedAt: Date;
+    image: string; // BLURREDS3KEY
 }
 
-interface LookupPurchasesEmailProps {
-    email: string;
-    purchases: Purchase[];
-}
-
-export const LookupPurchasesEmail = ({
+export default function LookupPurchasesEmail({
     email,
     purchases,
-}: LookupPurchasesEmailProps) => {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-
+}: {
+    email?: string,
+    purchases?: Purchase[]
+}) {
     return (
-        <Html>
-            <Head />
-            <Preview>Your purchase history from Granted.gg</Preview>
-            <Tailwind>
-                <Body className="bg-black font-sans">
-                    <Container className="bg-black mx-auto py-5 pb-12 mb-16">
-                        <Heading className="text-white text-2xl font-bold my-10 p-0">
-                            Your Purchase History
-                        </Heading>
-                        <Text className="text-white text-base leading-relaxed my-4">
-                            Here are all the links you've purchased:
-                        </Text>
+        <Layout>
+            <Heading className="text-2xl text-white font-medium text-center p-0 my-8 mx-0">Your purchase history from Granted.gg</Heading>
 
-                        {purchases.length === 0 ? (
-                            <Section className="py-7">
-                                <Text className="text-white/70 text-base leading-relaxed my-4">
-                                    We couldn't find any purchases associated with this email address.
-                                </Text>
-                                <Text className="text-white/70 text-base leading-relaxed my-4">
-                                    If you believe this is an error, please contact support at{" "}
-                                    <Link href="mailto:support@granted.gg" className="text-white underline">
-                                        support@granted.gg
+            {purchases?.length === 0 ? (
+                <>
+                    <Text className="text-white/70 text-base leading-relaxed my-4">
+                        We couldn't find any purchases associated with this email address.
+                    </Text>
+                    <Text className="text-white/70 text-base leading-relaxed my-4">
+                        If you believe this is an error, please contact support at{" "}
+                        <Link href="mailto:support@granted.gg" className="text-white underline">
+                            support@granted.gg
+                        </Link>
+                    </Text>
+                </>
+            ) : (
+                <Section>
+                    {Array.from({ length: Math.ceil((purchases?.length || 0) / 2) }).map((_, rowIndex) => {
+                        const purchase1 = purchases?.[rowIndex * 2];
+                        const purchase2 = purchases?.[rowIndex * 2 + 1];
+                        
+                        if (!purchase1) return null;
+                        
+                        return (
+                            <Row key={rowIndex} className="mb-6">
+                                <Column className="pr-3 items-center mx-auto w-1/2">
+                                    <Link href={purchase1.url} className="">
+                                        <Img
+                                            src={purchase1.image}
+                                            alt={purchase1.name}
+                                            width={200}
+                                            height={200}
+                                            className="mb-2"
+                                        />
+                                        <Row>
+                                            <Column style={{ width: "70%" }}>
+                                                <Text className="text-white text-md font-semibold m-0">{purchase1.name}</Text>
+                                            </Column>
+                                            <Column style={{ width: "30%" }}>
+                                                <Text className="text-white text-md font-semibold m-0 text-right">${purchase1.price.toFixed(2)}</Text>
+                                            </Column>
+                                        </Row>
                                     </Link>
-                                </Text>
-                            </Section>
-                        ) : (
-                            <Section className="py-7">
-                                {purchases.map((purchase, index) => (
-                                    <Section key={purchase.url} className="mb-6 pb-6 border-b border-white/10 last:border-b-0">
-                                        <Text className="text-white text-lg font-semibold my-2">
-                                            {purchase.name}
-                                        </Text>
-                                        <Text className="text-white/70 text-sm my-2">
-                                            Purchased: ${purchase.price.toFixed(2)}
-                                        </Text>
-                                        <Link
-                                            href={`${baseUrl}/${purchase.url}`}
-                                            className="bg-white rounded-lg text-black text-base font-bold no-underline text-center inline-block px-6 py-3 my-4"
-                                        >
-                                            Access Content
+                                </Column>
+                                <Column className="pl-3 w-1/2">
+                                    {purchase2 ? (
+                                        <Link href={purchase2.url} className="">
+                                            <Img
+                                                src={purchase2.image}
+                                                alt={purchase2.name}
+                                                width={200}
+                                                height={200}
+                                                className="mb-2"
+                                            />
+                                            <Row>
+                                                <Column style={{ width: "70%" }}>
+                                                    <Text className="text-white text-md font-semibold m-0">{purchase2.name}</Text>
+                                                </Column>
+                                                <Column style={{ width: "30%" }}>
+                                                    <Text className="text-white text-md font-semibold m-0 text-right">${purchase2.price.toFixed(2)}</Text>
+                                                </Column>
+                                            </Row>
                                         </Link>
-                                        <Text className="text-white/50 text-xs break-all bg-neutral-900 p-3 rounded my-2">
-                                            {baseUrl}/{purchase.url}
-                                        </Text>
-                                    </Section>
-                                ))}
-                            </Section>
-                        )}
+                                    ) : null}
+                                </Column>
+                            </Row>
+                        );
+                    })}
+                </Section>
+            )}
 
-                        <Text className="text-gray-500 text-xs leading-6 mt-8">
-                            If you have any questions about your purchases, please contact us at{" "}
-                            <Link href="mailto:support@granted.gg" className="text-gray-400 underline">
-                                support@granted.gg
-                            </Link>
-                        </Text>
-                    </Container>
-                </Body>
-            </Tailwind>
-        </Html>
-    );
-};
-
-export default LookupPurchasesEmail;
-
+            <Text className="text-start text-md text-white mt-4">
+                Cheers,
+                <br />
+                The Granted.gg Team
+            </Text>
+        </Layout>
+    )
+}

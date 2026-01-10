@@ -96,7 +96,7 @@ export default async function UpdatePage({
 
                 <div className="flex flex-col gap-4 mt-5">
                     <p className="font-semibold text-white">{post.author}</p>
-                    <Image src="/assets/signature-white.png" alt="Signature" width={100} height={100} />
+                    <Image className="opacity-50" src="/assets/signature-white.png" alt="Signature" width={100} height={100} />
                 </div>
             </div>
         </div>

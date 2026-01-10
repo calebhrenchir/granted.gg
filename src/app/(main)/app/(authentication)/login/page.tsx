@@ -129,6 +129,8 @@ export default function LoginPage() {
   return (
     <div className="h-[calc(100vh-12rem)] overflow-hidden flex flex-col items-center justify-center bg-black px-4">
       <div className="w-full max-w-md">
+        <h1 className="text-2xl font-bold text-white mb-1">Login to Granted</h1>
+        <p className="text-white/50 text-sm mb-4">Private, protected, annoymous.</p>
         <div className="bg-transparentrounded-lg space-y-4">
           {emailSent ? (
             <form onSubmit={handleVerifyCode} className="space-y-4">
@@ -207,7 +209,7 @@ export default function LoginPage() {
                 </Button>
               </form>
 
-              <div className="relative my-6">
+              <div className="relative my-5">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-1/3 border-t border-white/20"></div>
                 </div>
@@ -250,7 +252,7 @@ export default function LoginPage() {
       </div>
 
       <p className="text-white/50 text-xs text-center mt-3.5 max-w-sm">
-          By signing in, you agree that you are 18 years of age or older and to our <Link href="https://granted.gg/terms" target="_blank" className="text-white/80">Terms of Service</Link> and <Link href="https://granted.gg/privacy" target="_blank" className="text-white/80">Privacy Policy</Link>.
+          By signing in, you agree that you are 18 years of age or older and to our <Link href="https://granted.gg/terms" target="_blank" className="text-white/80 font-semibold hover:text-white transition">Terms of Service</Link> and <Link href="https://granted.gg/privacy" target="_blank" className="text-white/80 font-semibold hover:text-white transition">Privacy Policy</Link>.
       </p>
     </div>
   );

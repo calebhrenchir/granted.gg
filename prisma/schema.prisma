@@ -32,6 +32,7 @@ model Link {
   user            User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   files           File[]
   activities      Activity[]
+  reports         Report[]
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
@@ -41,6 +42,9 @@ model Link {
 
   deleted   Boolean   @default(false)
   deletedAt DateTime?
+
+  archived   Boolean   @default(false)
+  archivedAt DateTime?
 
   @@map("links")
 }
@@ -182,4 +186,24 @@ model BlogPost {
   updatedAt   DateTime @updatedAt
 
   @@map("blog_posts")
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  linkId      String
+  link        Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  reason      String   // Reason for report (e.g., "Copyright infringement", "Inappropriate content")
+  description String   @db.Text // Detailed description
+  reporterEmail String? // Email of the person who reported (to prevent duplicate reports)
+  status      String   @default("pending") // "pending", "reviewed", "resolved", "dismissed"
+  reviewedBy  String? // Admin user ID who reviewed
+  reviewedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  @@map("reports")
+  @@index([linkId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([linkId, reporterEmail])
+  @@unique([linkId, reporterEmail], name: "unique_link_reporter")
 }

@@ -95,7 +95,18 @@ export async function POST(request: Request) {
     const verifiedOutputs = verificationSession.verified_outputs as any;
     const documentFront = verifiedOutputs?.document?.front;
     const documentBack = verifiedOutputs?.document?.back;
-    const idNumber = verifiedOutputs?.id_number; // SSN/ITIN extracted from document
+    // ID number can be in different locations depending on document type
+    const idNumber = verifiedOutputs?.id_number || 
+                     verifiedOutputs?.ssn || 
+                     verifiedOutputs?.individual?.id_number; // SSN/ITIN extracted from document
+    
+    // Log for debugging
+    console.log("Extracting from Identity verification:", {
+      hasIdNumber: !!idNumber,
+      idNumberLength: idNumber?.length,
+      hasDocument: !!(documentFront || documentBack),
+      verifiedOutputsKeys: Object.keys(verifiedOutputs || {}),
+    });
 
     let connectedAccountId = user.stripeConnectAccountId;
 

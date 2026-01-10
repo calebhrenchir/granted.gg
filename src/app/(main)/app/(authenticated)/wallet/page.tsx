@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { Loader2, Wallet, ArrowUpRight, Calendar, Unlock, ArrowDownRight } from "lucide-react";
 import Link from "next/link";
@@ -19,6 +19,7 @@ interface ActivityData {
     linkName: string;
     type: "purchase" | "withdraw";
     amount: number | null;
+    platformFee: number | null;
     createdAt: string;
 }
 
@@ -133,6 +134,55 @@ export default function WalletPage() {
             maximumFractionDigits: 2,
         });
     };
+
+    const calculateSellerEarnings = (baseAmount: number, platformFeePercent: number | null): number => {
+        // Seller receives base price minus half of the platform fee
+        const feePercent = platformFeePercent ?? 20;
+        const sellerFeePercent = feePercent / 2;
+        return baseAmount * (1 - sellerFeePercent / 100);
+    };
+
+    // Calculate stats from sales data
+    const stats = useMemo(() => {
+        const allTimeSales = sales.length;
+        
+        // Calculate all-time earnings (sum of seller earnings from all purchases)
+        const allTimeEarnings = sales.reduce((sum, sale) => {
+            if (sale.amount) {
+                return sum + calculateSellerEarnings(sale.amount, sale.platformFee);
+            }
+            return sum;
+        }, 0);
+
+        // Get current month start
+        const now = new Date();
+        const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        // Calculate sales this month
+        const salesThisMonth = sales.filter(sale => {
+            const saleDate = new Date(sale.createdAt);
+            return saleDate >= currentMonthStart;
+        });
+        
+        const salesThisMonthCount = salesThisMonth.length;
+        const salesThisMonthEarnings = salesThisMonth.reduce((sum, sale) => {
+            if (sale.amount) {
+                return sum + calculateSellerEarnings(sale.amount, sale.platformFee);
+            }
+            return sum;
+        }, 0);
+
+        // Calculate average earnings per sale
+        const averageEarningsPerSale = allTimeSales > 0 ? allTimeEarnings / allTimeSales : 0;
+
+        return {
+            allTimeEarnings,
+            allTimeSales,
+            salesThisMonthCount,
+            salesThisMonthEarnings,
+            averageEarningsPerSale,
+        };
+    }, [sales]);
 
     const formatTimeAgo = (dateString: string): string => {
         const date = new Date(dateString);
@@ -351,7 +401,9 @@ export default function WalletPage() {
                                             </div>
                                         </div>
                                         {activity.type === "purchase" && activity.amount && (
-                                            <h2 className="text-green-400 font-semibold text-lg">+ ${formatPrice(activity.amount)}</h2>
+                                            <h2 className="text-green-400 font-semibold text-lg">
+                                                + ${formatPrice(calculateSellerEarnings(activity.amount, activity.platformFee))}
+                                            </h2>
                                         )}
                                         {activity.type === "withdraw" && activity.amount && (
                                             <h2 className="text-red-400 font-semibold text-lg">- ${formatPrice(activity.amount)}</h2>
@@ -400,7 +452,9 @@ export default function WalletPage() {
                                             </div>
                                         </div>
                                         {activity.amount && (
-                                            <h2 className="text-green-400 font-semibold text-lg">+ ${formatPrice(activity.amount)}</h2>
+                                            <h2 className="text-green-400 font-semibold text-lg">
+                                                + ${formatPrice(calculateSellerEarnings(activity.amount, activity.platformFee))}
+                                            </h2>
                                         )}
                                     </div>
                                 ))}
@@ -458,19 +512,19 @@ export default function WalletPage() {
                 <div className="flex flex-col gap-4">
                     <div>
                         <p className="text-white/50 text-sm mb-1">All-Time Earnings</p>
-                        <p className="text-white font-semibold">{0}</p>
+                        <p className="text-white font-semibold">${formatPrice(stats.allTimeEarnings)}</p>
                     </div>
                     <div>
                         <p className="text-white/50 text-sm mb-1">All-Time Sales</p>
-                        <p className="text-white font-semibold">{0}</p>
+                        <p className="text-white font-semibold">{stats.allTimeSales}</p>
                     </div>
                     <div>
                         <p className="text-white/50 text-sm mb-1">Sales This Month</p>
-                        <p className="text-white font-semibold">${Number(0).toFixed(2)}</p>
+                        <p className="text-white font-semibold">{stats.salesThisMonthCount} (${formatPrice(stats.salesThisMonthEarnings)})</p>
                     </div>
                     <div>
                         <p className="text-white/50 text-sm mb-1">Average Earnings Per Sale</p>
-                        <p className="text-white font-semibold">${Number(0).toFixed(2)}</p>
+                        <p className="text-white font-semibold">${formatPrice(stats.averageEarningsPerSale)}</p>
                     </div>
                 </div>
             ) : null}

@@ -169,6 +169,10 @@ export async function POST(request: Request) {
         where: {
           stripeVerificationSessionId: verificationSession.id,
         },
+        select: {
+          id: true,
+          stripeConnectAccountId: true,
+        },
       });
 
       if (user) {
@@ -181,6 +185,35 @@ export async function POST(request: Request) {
         });
 
         console.log(`Identity verified for user ${user.id}`);
+
+        // If user has a Connect account, automatically update it with ID number from verification
+        if (user.stripeConnectAccountId && verificationSession.verified_outputs) {
+          try {
+            const verifiedOutputs = verificationSession.verified_outputs as any;
+            // ID number can be in different locations depending on document type
+            const idNumber = verifiedOutputs?.id_number || 
+                           verifiedOutputs?.ssn || 
+                           verifiedOutputs?.individual?.id_number;
+            
+            if (idNumber) {
+              // Update the Connect account with the ID number
+              await stripe.accounts.update(user.stripeConnectAccountId, {
+                individual: {
+                  id_number: idNumber,
+                },
+              });
+              
+              console.log(`Updated Connect account ${user.stripeConnectAccountId} with ID number from Identity verification`);
+            } else {
+              console.warn(`Identity verification completed but no ID number found in verified_outputs for user ${user.id}`, {
+                verifiedOutputsKeys: Object.keys(verifiedOutputs || {}),
+              });
+            }
+          } catch (updateError: any) {
+            console.error(`Error updating Connect account with ID number for user ${user.id}:`, updateError);
+            // Don't fail the webhook if we can't update the account
+          }
+        }
       } else {
         console.warn(`No user found for verification session ${verificationSession.id}`);
       }
@@ -199,6 +232,45 @@ export async function POST(request: Request) {
 
       if (user) {
         console.log(`Verification requires input for user ${user.id}:`, verificationSession.last_error);
+      }
+    }
+
+    // Handle account.updated event (connected account status changed)
+    // This event is sent when a connected account's status changes, including when verification completes
+    if (event.type === "account.updated") {
+      const account = event.data.object as Stripe.Account;
+      
+      try {
+        // Find user by connected account ID
+        const user = await prisma.user.findFirst({
+          where: {
+            stripeConnectAccountId: account.id,
+          },
+          select: {
+            id: true,
+            email: true,
+            isIdentityVerified: true,
+          },
+        });
+
+        if (user) {
+          // Log account status changes for debugging
+          console.log(`Account ${account.id} updated for user ${user.id}:`, {
+            payouts_enabled: account.payouts_enabled,
+            charges_enabled: account.charges_enabled,
+            details_submitted: account.details_submitted,
+            disabled_reason: account.requirements?.disabled_reason,
+          });
+
+          // If payouts are now enabled and identity was verified, we could send a notification
+          // but for now we'll just log it
+          if (account.payouts_enabled && user.isIdentityVerified) {
+            console.log(`Payouts enabled for user ${user.id}`);
+          }
+        }
+      } catch (error) {
+        console.error("Error processing account.updated webhook:", error);
+        // Don't fail the webhook if we can't process the account update
       }
     }
 

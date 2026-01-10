@@ -66,6 +66,7 @@ export async function GET(request: Request) {
             linkName: activity.link.name || activity.link.url,
             type: activity.type as "purchase" | "withdraw",
             amount: activity.amount !== null ? centsToDollars(activity.amount) : null,
+            platformFee: activity.platformFee ?? null,
             createdAt: activity.createdAt.toISOString(),
         }));
 

@@ -123,8 +123,12 @@ export async function POST(request: Request) {
         
         let errorMessage = "Your connected account is not ready to receive payouts. ";
         
-        // Provide specific guidance based on what's missing
-        if (!hasBankAccount) {
+        // Handle pending verification case specifically
+        if (disabledReason === 'requirements.pending_verification') {
+          errorMessage = "Your account information is being reviewed by Stripe. This process typically takes a few minutes to a few hours. Please check back later. If this persists for more than 24 hours, please contact support.";
+        } else if (disabledReason === 'requirements.past_due' && missingRequirements.includes('individual.id_number')) {
+          errorMessage = "Your SSN/ID number needs to be added to your Stripe Connect account. Even though you've completed identity verification, we need to sync this information. Please go to your wallet settings and complete the requirements, or contact support for assistance.";
+        } else if (!hasBankAccount) {
           errorMessage = "Please add a bank account in your wallet settings before withdrawing funds.";
         } else if (missingRequirements.length > 0) {
           // Format requirement names to be more user-friendly
@@ -133,7 +137,9 @@ export async function POST(request: Request) {
           });
           errorMessage += "Please complete: " + formattedRequirements.join(", ");
         } else if (disabledReason) {
-          errorMessage += `Account status: ${disabledReason}. Please complete the onboarding process.`;
+          // Format disabled reason to be more user-friendly
+          const formattedReason = disabledReason.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+          errorMessage += `Account status: ${formattedReason}. Please complete the onboarding process.`;
         } else {
           errorMessage += "Please complete the onboarding process in your wallet settings.";
         }

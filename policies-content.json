@@ -1,0 +1,215 @@
+{
+  "terms": {
+    "title": "Terms of Service",
+    "sections": [
+      {
+        "title": "Acceptance of Terms",
+        "description": "By accessing or using granted.gg (the \"Service\"), you agree to be bound by these Terms of Service (\"Terms\"). If you do not agree to these Terms, you may not use the Service. We reserve the right to modify these Terms at any time, and such modifications will be effective immediately upon posting. Your continued use of the Service after any such modifications constitutes your acceptance of the modified Terms."
+      },
+      {
+        "title": "Description of Service",
+        "description": "granted.gg is a digital content marketplace platform that enables users (\"Sellers\") to create links to sell digital content (including but not limited to images, videos, documents, and other digital files) to other users (\"Buyers\"). The Service facilitates transactions between Sellers and Buyers, processes payments, and provides access to purchased content. We are not a party to any transaction between Sellers and Buyers, and we do not guarantee the quality, accuracy, or legality of any content sold through the Service."
+      },
+      {
+        "title": "User Accounts and Registration",
+        "description": "To use certain features of the Service, you must create an account. You agree to: (a) provide accurate, current, and complete information when creating your account; (b) maintain and update your account information to keep it accurate, current, and complete; (c) maintain the security of your account credentials; (d) accept responsibility for all activities that occur under your account; and (e) notify us immediately of any unauthorized use of your account. You must be at least 18 years old to use the Service. We reserve the right to suspend or terminate your account at any time for violation of these Terms or for any other reason we deem necessary."
+      },
+      {
+        "title": "Identity Verification for Sellers",
+        "description": "To sell content and receive payments, Sellers must complete identity verification through our third-party verification provider (Stripe Identity). This process requires providing government-issued identification and may include additional verification steps such as providing your Social Security Number (SSN) or Tax Identification Number. We reserve the right to refuse service to anyone who fails to complete identity verification, provides false information, or does not meet our verification requirements. Identity verification is required to comply with financial regulations and prevent fraud."
+      },
+      {
+        "title": "Content and Intellectual Property",
+        "description": "You retain all ownership rights to content you upload to the Service. By uploading content, you grant granted.gg a limited, non-exclusive, worldwide, royalty-free license to store, display, distribute, and process your content solely for the purpose of providing the Service. You represent and warrant that: (a) you own or have the necessary rights, licenses, and permissions to all content you upload; (b) your content does not violate any third-party rights, including intellectual property rights, privacy rights, or publicity rights; (c) you have obtained all necessary consents and releases from any individuals featured in your content; and (d) your content complies with all applicable laws and regulations."
+      },
+      {
+        "title": "Prohibited Content",
+        "description": "You may not upload, sell, or distribute content that: (a) violates any applicable laws, regulations, or court orders; (b) infringes on intellectual property rights, including copyrights, trademarks, patents, or trade secrets; (c) contains illegal, harmful, threatening, abusive, or offensive material; (d) promotes violence, hate speech, discrimination, or harassment based on race, religion, gender, sexual orientation, or other protected characteristics; (e) contains personal information of others without their explicit consent; (f) is fraudulent, misleading, or deceptive; (g) contains malware, viruses, or other harmful code; (h) violates any third-party terms of service; or (i) violates any other provision of these Terms. We reserve the right to remove, disable, or delete any content that violates these Terms without prior notice."
+      },
+      {
+        "title": "Content Moderation and Account Actions",
+        "description": "We reserve the right to review, moderate, and take action on any content or user account at our sole discretion. If we determine that you have uploaded inappropriate, illegal, or prohibited content, we may: (a) immediately remove or disable the content; (b) freeze your account, preventing you from creating new links or accessing certain features; (c) hold or freeze your account balance and profits pending investigation; (d) archive or delete your links; (e) terminate your account; and (f) report your activity to law enforcement if necessary. We may hold your profits indefinitely if we determine that you have violated these Terms or engaged in fraudulent activity. You acknowledge that we are not obligated to release held funds if we determine that you have violated these Terms."
+      },
+      {
+        "title": "Pricing and Payment Structure",
+        "description": "Sellers set their own prices for content, with a minimum price of $5.00 USD. All prices are displayed in USD. When a Buyer purchases content, the total price includes: (a) the Seller's set base price; plus (b) a buyer processing fee equal to 10% of the base price. granted.gg retains a platform fee of 20% of each sale, which is split equally: 10% is paid by the Buyer as a processing fee, and 10% is deducted from the Seller's earnings. For example, if a Seller sets a price of $10.00, the Buyer pays $11.00 total ($10.00 base + $1.00 buyer fee), and the Seller receives $9.00 ($10.00 base - $1.00 seller fee). Payments are processed through Stripe, and all payment information is handled by Stripe in accordance with their terms of service."
+      },
+      {
+        "title": "Seller Earnings and Payouts",
+        "description": "Seller earnings are calculated as the base price minus the seller portion of the platform fee (10% of base price). Earnings accumulate in your account balance and can be withdrawn to your connected bank account through Stripe Connect. To receive payouts, you must: (a) complete identity verification; (b) connect a valid bank account through Stripe Connect; (c) comply with all Stripe Connect requirements; and (d) maintain an account in good standing. We reserve the right to hold, freeze, or delay payouts if we suspect fraudulent activity, violation of these Terms, or for any other reason we deem necessary. Payouts are subject to Stripe's processing times and fees. We are not responsible for any delays or issues with Stripe Connect payouts."
+      },
+      {
+        "title": "Refunds and Disputes",
+        "description": "All sales are final. We do not offer refunds except as required by law or in cases of technical errors on our part. If you experience technical issues accessing purchased content, please contact support. Disputes between Buyers and Sellers should be resolved directly between the parties. We are not responsible for the quality, accuracy, or delivery of content sold by Sellers. If you believe you have been defrauded or that content violates these Terms, you may report it through our reporting system, but we are not obligated to provide refunds."
+      },
+      {
+        "title": "Reporting Content",
+        "description": "Users may report content that they believe violates these Terms or applicable laws. Reports are reviewed by our moderation team, and we reserve the right to take action on reported content at our sole discretion. Users may only report each link once to prevent abuse of the reporting system. False or malicious reports may result in account suspension or termination. We are not obligated to take action on any report, and our decisions regarding reported content are final."
+      },
+      {
+        "title": "Prohibited Activities",
+        "description": "You agree not to: (a) use the Service for any illegal purpose or in violation of any laws; (b) upload content that you do not have the right to sell; (c) impersonate any person or entity or falsely state or misrepresent your affiliation with any person or entity; (d) interfere with or disrupt the Service or servers connected to the Service; (e) attempt to gain unauthorized access to any portion of the Service or any other accounts, computer systems, or networks; (f) use automated systems (bots, scrapers, etc.) to access the Service without permission; (g) reverse engineer, decompile, or disassemble any portion of the Service; (h) collect or harvest any information from the Service; or (i) engage in any activity that we determine, in our sole discretion, is harmful to the Service or other users."
+      },
+      {
+        "title": "Termination",
+        "description": "We may terminate or suspend your account and access to the Service immediately, without prior notice or liability, for any reason, including if you breach these Terms. Upon termination, your right to use the Service will cease immediately. If your account is terminated, you may lose access to your content, earnings, and account data. We reserve the right to hold your earnings and delay payouts if your account is terminated for violation of these Terms. All provisions of these Terms that by their nature should survive termination shall survive termination, including ownership provisions, warranty disclaimers, and limitations of liability."
+      },
+      {
+        "title": "Disclaimers and Limitations of Liability",
+        "description": "THE SERVICE IS PROVIDED \"AS IS\" AND \"AS AVAILABLE\" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, SECURE, OR ERROR-FREE. TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES RESULTING FROM YOUR USE OF THE SERVICE."
+      },
+      {
+        "title": "Indemnification",
+        "description": "You agree to indemnify, defend, and hold harmless granted.gg, its affiliates, officers, directors, employees, and agents from and against any and all claims, damages, obligations, losses, liabilities, costs, or debt, and expenses (including but not limited to attorney's fees) arising from: (a) your use of the Service; (b) your violation of these Terms; (c) your violation of any third-party right, including intellectual property rights or privacy rights; (d) any content you upload or sell through the Service; or (e) any claim that your content caused damage to a third party."
+      },
+      {
+        "title": "Governing Law and Dispute Resolution",
+        "description": "These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which granted.gg operates, without regard to its conflict of law provisions. Any disputes arising out of or relating to these Terms or the Service shall be resolved through binding arbitration in accordance with the rules of the American Arbitration Association, except where prohibited by law. You waive any right to a jury trial and agree to resolve disputes on an individual basis."
+      },
+      {
+        "title": "Changes to Terms",
+        "description": "We reserve the right to modify these Terms at any time. We will notify users of material changes by posting the updated Terms on the Service and updating the \"last updated\" date. Your continued use of the Service after such modifications constitutes your acceptance of the modified Terms. If you do not agree to the modified Terms, you must stop using the Service and may terminate your account."
+      },
+      {
+        "title": "Contact Information",
+        "description": "If you have any questions about these Terms, please contact us through the support channels provided on the Service."
+      }
+    ]
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "sections": [
+      {
+        "title": "Introduction",
+        "description": "This Privacy Policy describes how granted.gg (\"we,\" \"us,\" or \"our\") collects, uses, and shares your personal information when you use our Service. By using the Service, you agree to the collection and use of information in accordance with this Privacy Policy. We are committed to protecting your privacy and handling your personal information responsibly."
+      },
+      {
+        "title": "Information We Collect",
+        "description": "We collect several types of information from and about users of our Service: (a) Account Information: name, email address, and profile information you provide when creating an account; (b) Identity Verification Information: government-issued identification, Social Security Number (SSN) or Tax Identification Number, date of birth, address, and other information required for identity verification through Stripe Identity; (c) Payment Information: bank account details, payment method information, and transaction history (processed through Stripe); (d) Content Information: files, images, videos, and other digital content you upload; (e) Usage Information: how you interact with the Service, including links viewed, purchases made, and features used; (f) Device Information: IP address, browser type, operating system, and device identifiers; (g) Communication Information: emails, support requests, and other communications you send to us; and (h) Cookies and Tracking Technologies: information collected through cookies, web beacons, and similar technologies."
+      },
+      {
+        "title": "How We Use Your Information",
+        "description": "We use the information we collect to: (a) provide, maintain, and improve the Service; (b) process transactions and facilitate payments between Buyers and Sellers; (c) verify your identity for compliance and security purposes; (d) communicate with you about your account, transactions, and the Service; (e) send you notifications about link views, purchases, and account activity (you can opt out of these in your account settings); (f) detect, prevent, and address fraud, security issues, and violations of our Terms; (g) comply with legal obligations and respond to legal requests; (h) analyze usage patterns to improve the Service; and (i) enforce our Terms of Service and other policies."
+      },
+      {
+        "title": "Identity Verification and Financial Information",
+        "description": "To enable Sellers to receive payments, we collect sensitive personal information including government-issued identification, Social Security Number (SSN) or Tax Identification Number, date of birth, address, and bank account information. This information is collected and processed by Stripe Identity and Stripe Connect, our third-party payment processors, in accordance with their privacy policies and applicable financial regulations. We do not store your SSN or full bank account details on our servers; this information is handled securely by Stripe. We use this information solely for identity verification, payment processing, and compliance with financial regulations."
+      },
+      {
+        "title": "Information Sharing and Disclosure",
+        "description": "We may share your information in the following circumstances: (a) With Payment Processors: We share payment and identity verification information with Stripe to process payments and verify identities; (b) With Service Providers: We may share information with third-party service providers who perform services on our behalf, such as cloud storage (AWS S3), email services (Resend), and analytics providers; (c) For Legal Compliance: We may disclose information if required by law, court order, or government regulation, or to protect our rights, property, or safety, or that of our users or others; (d) In Case of Business Transfers: If we are involved in a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction; (e) With Your Consent: We may share information with your explicit consent or at your direction; and (f) Aggregated Data: We may share aggregated, anonymized data that does not identify individual users. We do not sell your personal information to third parties."
+      },
+      {
+        "title": "Content Storage and Access",
+        "description": "Content you upload is stored on Amazon Web Services (AWS) S3 servers. We use presigned URLs with expiration times to provide secure, time-limited access to purchased content. Buyers who purchase your content will have access to the content through these presigned URLs. We implement security measures to protect your content, but you acknowledge that no method of transmission over the Internet or electronic storage is 100% secure. We are not responsible for unauthorized access to your content that occurs due to security breaches or other factors beyond our control."
+      },
+      {
+        "title": "Email Communications",
+        "description": "We send email communications for various purposes, including: (a) account verification and login codes; (b) purchase confirmations and access links; (c) notifications about link views and purchases (you can opt out in account settings); (d) wallet and payout notifications (you can opt out in account settings); (e) important account and security updates; and (f) marketing communications (you can opt out at any time). We use Resend for email delivery. You can manage your email preferences in your account settings."
+      },
+      {
+        "title": "Cookies and Tracking Technologies",
+        "description": "We use cookies and similar tracking technologies to: (a) maintain your session and authenticate you; (b) remember your preferences and settings; (c) analyze how you use the Service; and (d) provide personalized content and advertising. You can control cookies through your browser settings, but disabling cookies may limit your ability to use certain features of the Service. We may use third-party analytics services that use cookies to analyze usage patterns."
+      },
+      {
+        "title": "Data Security",
+        "description": "We implement industry-standard security measures to protect your personal information, including encryption in transit and at rest, secure authentication, and regular security audits. However, no method of transmission over the Internet or electronic storage is completely secure. While we strive to protect your personal information, we cannot guarantee absolute security. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account."
+      },
+      {
+        "title": "Data Retention",
+        "description": "We retain your personal information for as long as necessary to provide the Service, comply with legal obligations, resolve disputes, and enforce our agreements. Specifically: (a) Account information is retained while your account is active and for a reasonable period after account closure; (b) Identity verification information is retained as required by financial regulations and Stripe's requirements; (c) Transaction records are retained for tax and accounting purposes as required by law; (d) Content you upload may be retained even after account closure if it has been purchased by others; and (e) We may retain certain information for longer periods if required by law or for legitimate business purposes."
+      },
+      {
+        "title": "Your Rights and Choices",
+        "description": "You have certain rights regarding your personal information: (a) Access: You can access and update your account information through your account settings; (b) Deletion: You can request deletion of your account and personal information, subject to legal and contractual obligations; (c) Opt-Out: You can opt out of certain email notifications in your account settings; (d) Data Portability: You can request a copy of your personal information in a portable format; and (e) Correction: You can correct inaccurate information through your account settings. To exercise these rights, please contact us through the support channels provided on the Service. Note that we may retain certain information as required by law or for legitimate business purposes."
+      },
+      {
+        "title": "Children's Privacy",
+        "description": "The Service is not intended for children under 18 years of age. We do not knowingly collect personal information from children under 18. If you are a parent or guardian and believe your child has provided us with personal information, please contact us immediately. If we become aware that we have collected personal information from a child under 18, we will take steps to delete such information promptly."
+      },
+      {
+        "title": "International Data Transfers",
+        "description": "Your information may be transferred to and processed in countries other than your country of residence. These countries may have data protection laws that differ from those in your country. By using the Service, you consent to the transfer of your information to these countries. We take appropriate safeguards to ensure that your information receives an adequate level of protection in accordance with this Privacy Policy."
+      },
+      {
+        "title": "Third-Party Services",
+        "description": "The Service integrates with third-party services, including: (a) Stripe for payment processing and identity verification; (b) AWS S3 for content storage; (c) Resend for email delivery; and (d) NextAuth for authentication. These services have their own privacy policies and terms of service. We encourage you to review their privacy policies. We are not responsible for the privacy practices of these third-party services."
+      },
+      {
+        "title": "California Privacy Rights",
+        "description": "If you are a California resident, you have additional rights under the California Consumer Privacy Act (CCPA), including: (a) the right to know what personal information we collect, use, and share; (b) the right to delete your personal information; (c) the right to opt out of the sale of personal information (we do not sell personal information); and (d) the right to non-discrimination for exercising your privacy rights. To exercise these rights, please contact us through the support channels provided on the Service."
+      },
+      {
+        "title": "Changes to This Privacy Policy",
+        "description": "We may update this Privacy Policy from time to time. We will notify you of material changes by posting the updated Privacy Policy on the Service and updating the \"last updated\" date. Your continued use of the Service after such modifications constitutes your acceptance of the updated Privacy Policy. If you do not agree to the updated Privacy Policy, you must stop using the Service and may terminate your account."
+      },
+      {
+        "title": "Contact Us",
+        "description": "If you have any questions about this Privacy Policy or our privacy practices, please contact us through the support channels provided on the Service."
+      }
+    ]
+  },
+  "removal": {
+    "title": "Content Removal Policy",
+    "sections": [
+      {
+        "title": "Overview",
+        "description": "This Content Removal Policy describes the circumstances under which content may be removed from granted.gg, the process for reporting and removing content, and the rights and responsibilities of users regarding content removal. We are committed to maintaining a safe and legal marketplace while respecting the rights of content creators and purchasers."
+      },
+      {
+        "title": "Grounds for Content Removal",
+        "description": "We may remove, disable, or delete content at any time if we determine, in our sole discretion, that the content: (a) violates our Terms of Service, including prohibited content such as illegal material, copyright infringement, hate speech, or harmful content; (b) violates applicable laws or regulations; (c) infringes on intellectual property rights of third parties; (d) contains personal information of others without consent; (e) is fraudulent, misleading, or deceptive; (f) has been reported by users and determined to violate our policies after review; (g) poses a security risk or contains malware; (h) violates the rights of others; or (i) is otherwise objectionable or harmful to the Service or its users."
+      },
+      {
+        "title": "Reporting Content",
+        "description": "Users who have purchased content may report content that they believe violates our Terms of Service or applicable laws. To report content: (a) you must have purchased the content; (b) you may only report each link once to prevent abuse; (c) you must provide a specific reason for the report and a detailed description; (d) reports are reviewed by our moderation team; and (e) we will take action on reports that we determine violate our policies. False or malicious reports may result in account suspension or termination. We are not obligated to take action on any report, and our decisions regarding reported content are final."
+      },
+      {
+        "title": "Content Moderation Process",
+        "description": "When content is reported or flagged, our moderation team will: (a) review the reported content and the report details; (b) investigate whether the content violates our Terms of Service or applicable laws; (c) consider the severity and nature of the violation; (d) take appropriate action, which may include removing specific files, archiving the link, or taking no action; and (e) notify the Seller if their content is removed (unless doing so would compromise an investigation). We prioritize reports based on severity, with priority given to content with multiple reports or serious violations."
+      },
+      {
+        "title": "Account Actions for Violations",
+        "description": "If we determine that you have uploaded content that violates our Terms of Service or applicable laws, we may take one or more of the following actions: (a) Remove or disable the specific content that violates our policies; (b) Remove specific files from a link while leaving the link active; (c) Archive the entire link, making it inaccessible to Buyers; (d) Freeze your account, preventing you from creating new links or accessing certain features; (e) Hold or freeze your account balance and profits pending investigation; (f) Terminate your account permanently; and (g) Report your activity to law enforcement if we determine that illegal activity has occurred. We may hold your profits indefinitely if we determine that you have violated our Terms or engaged in fraudulent activity."
+      },
+      {
+        "title": "Holding and Freezing Profits",
+        "description": "If we determine that you have uploaded inappropriate, illegal, or prohibited content, we reserve the right to immediately freeze and hold your account balance and profits. This includes: (a) preventing withdrawals of any funds in your account; (b) holding funds pending investigation of reported violations; (c) holding funds if we suspect fraudulent activity or Terms violations; and (d) holding funds indefinitely if we determine that you have engaged in serious violations, including but not limited to copyright infringement, illegal content distribution, or fraud. You acknowledge that we are not obligated to release held funds if we determine that you have violated our Terms of Service. We may use held funds to cover refunds, chargebacks, legal fees, or damages resulting from your violations."
+      },
+      {
+        "title": "Copyright and Intellectual Property",
+        "description": "We respect intellectual property rights and will remove content that infringes on copyrights, trademarks, or other intellectual property rights. If you believe your intellectual property rights have been infringed: (a) you may report the content through our reporting system; (b) you may also submit a formal DMCA takedown notice; and (c) we will investigate and remove content that we determine infringes on your rights. Sellers are responsible for ensuring they have the right to sell all content they upload. Uploading content that infringes on intellectual property rights is a violation of our Terms and may result in account termination and profit freezing."
+      },
+      {
+        "title": "Appeals Process",
+        "description": "If your content is removed or your account is subject to action, you may contact us to appeal the decision. However: (a) we are not obligated to review appeals; (b) our decisions are final and binding; (c) we may require additional information or documentation to consider an appeal; and (d) the appeal process does not guarantee that content will be restored or that account actions will be reversed. We reserve the right to deny appeals at our sole discretion."
+      },
+      {
+        "title": "Purchaser Rights",
+        "description": "If content you purchased is removed due to a Terms violation: (a) we are not obligated to provide refunds; (b) you will lose access to the removed content; (c) you may report the content if you believe it violates our policies; and (d) we are not responsible for the quality, accuracy, or availability of content sold by Sellers. All sales are final, and we do not guarantee that purchased content will remain available indefinitely."
+      },
+      {
+        "title": "Seller Responsibilities",
+        "description": "As a Seller, you are responsible for: (a) ensuring all content you upload complies with our Terms of Service and applicable laws; (b) obtaining all necessary rights, licenses, and permissions to sell your content; (c) ensuring your content does not infringe on intellectual property rights; (d) ensuring your content does not contain personal information of others without consent; (e) accurately representing your content to Buyers; and (f) complying with all applicable laws and regulations. Failure to meet these responsibilities may result in content removal, account actions, and profit freezing."
+      },
+      {
+        "title": "No Guarantee of Content Availability",
+        "description": "We do not guarantee that content will remain available on the Service indefinitely. Content may be removed at any time for violations of our Terms, legal requirements, or other reasons we deem necessary. Sellers should not rely on the Service as the sole storage location for their content, and Buyers should not assume that purchased content will remain accessible indefinitely. We are not responsible for any loss or damage resulting from content removal."
+      },
+      {
+        "title": "Cooperation with Law Enforcement",
+        "description": "We will cooperate with law enforcement agencies and comply with legal requests, including court orders, subpoenas, and other legal processes. We may disclose user information and remove content as required by law or to assist in investigations. We may also report illegal activity to law enforcement agencies. Users who engage in illegal activity may face criminal prosecution in addition to account termination and profit freezing."
+      },
+      {
+        "title": "Changes to This Policy",
+        "description": "We may update this Content Removal Policy from time to time. We will notify users of material changes by posting the updated policy on the Service and updating the \"last updated\" date. Your continued use of the Service after such modifications constitutes your acceptance of the updated policy. If you do not agree to the updated policy, you must stop using the Service and may terminate your account."
+      },
+      {
+        "title": "Contact Information",
+        "description": "If you have questions about this Content Removal Policy or need to report content, please contact us through the support channels provided on the Service."
+      }
+    ]
+  }
+}
+
+

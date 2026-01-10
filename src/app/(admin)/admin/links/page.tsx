@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, MoreVertical, Eye, EyeOff, Link2, DollarSign, MousePointerClick, ShoppingCart, Calendar, User, ChevronLeft, ChevronRight, Edit, Save, X, Trash2, ExternalLink } from "lucide-react";
+import { Search, MoreVertical, Eye, EyeOff, Link2, DollarSign, MousePointerClick, ShoppingCart, Calendar, User, ChevronLeft, ChevronRight, Edit, Save, X, Trash2, ExternalLink, Flag, AlertTriangle, Ban, Archive, FileX } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -50,6 +50,7 @@ interface Link {
     email: string | null;
     firstName: string | null;
     lastName: string | null;
+    isFrozen?: boolean;
   } | null;
   _count: {
     files: number;
@@ -67,6 +68,26 @@ interface LinkDetails extends Link {
     createdAt: string;
   }>;
   purchaseCount: number;
+}
+
+interface ReportedLink extends Link {
+  priority: boolean;
+  recentReportCount: number;
+  totalReportCount: number;
+  reports: Array<{
+    id: string;
+    reason: string;
+    description: string;
+    status: string;
+    createdAt: string;
+  }>;
+  files?: Array<{
+    id: string;
+    name: string;
+    mimeType: string;
+    size: number;
+    createdAt: string;
+  }>;
 }
 
 const columns = [
@@ -104,14 +125,99 @@ function LinksPageContent() {
   const [columnVisibility, setColumnVisibility] = useState(
     columns.reduce((acc, col) => ({ ...acc, [col.key]: col.visible }), {} as Record<string, boolean>)
   );
+  const [view, setView] = useState<"all" | "reports">("all");
+  const [reportedLinks, setReportedLinks] = useState<ReportedLink[]>([]);
+  const [loadingReports, setLoadingReports] = useState(false);
+  const [selectedReportedLink, setSelectedReportedLink] = useState<ReportedLink | null>(null);
+  const [reportSheetOpen, setReportSheetOpen] = useState(false);
+  const [isModerating, setIsModerating] = useState(false);
+  const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
+  const [showFileSelector, setShowFileSelector] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
-      fetchLinks();
+      if (view === "all") {
+        fetchLinks();
+      } else {
+        fetchReportedLinks();
+      }
     } else if (status === "unauthenticated") {
       setLoading(false);
     }
-  }, [status, session, search, page]);
+  }, [status, session, search, page, view]);
+
+  async function fetchReportedLinks() {
+    try {
+      setLoadingReports(true);
+      const response = await fetch("/api/admin/reports?status=pending");
+      if (response.ok) {
+        const data = await response.json();
+        setReportedLinks(data.links || []);
+      } else {
+        console.error("Failed to fetch reported links");
+        setReportedLinks([]);
+      }
+    } catch (error) {
+      console.error("Error fetching reported links:", error);
+      setReportedLinks([]);
+    } finally {
+      setLoadingReports(false);
+    }
+  }
+
+  async function fetchReportedLinkDetails(linkId: string) {
+    try {
+      const response = await fetch(`/api/admin/reports/${linkId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedReportedLink(data.link);
+        setReportSheetOpen(true);
+      } else {
+        console.error("Failed to fetch reported link details");
+      }
+    } catch (error) {
+      console.error("Error fetching reported link details:", error);
+    }
+  }
+
+  async function moderateLink(action: string, fileIds?: string[], reason?: string) {
+    if (!selectedReportedLink) return;
+
+    if (!confirm(`Are you sure you want to ${action.replace(/_/g, " ")}? This action may be irreversible.`)) {
+      return;
+    }
+
+    try {
+      setIsModerating(true);
+      const response = await fetch("/api/admin/reports/moderate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          linkId: selectedReportedLink.id,
+          action,
+          fileIds,
+          reason,
+        }),
+      });
+
+      if (response.ok) {
+        await fetchReportedLinks();
+        setReportSheetOpen(false);
+        setSelectedReportedLink(null);
+        alert("Moderation action completed successfully");
+      } else {
+        const error = await response.json();
+        alert(error.error || "Failed to perform moderation action");
+      }
+    } catch (error) {
+      console.error("Error moderating link:", error);
+      alert("Error performing moderation action");
+    } finally {
+      setIsModerating(false);
+    }
+  }
 
   // Handle linkId query parameter from command menu
   useEffect(() => {
@@ -283,7 +389,40 @@ function LinksPageContent() {
   return (
     <div className="p-5">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-4xl font-bold">Links ({totalCount})</h1>
+        <h1 className="text-4xl font-bold">
+          {view === "all" ? `Links (${totalCount})` : `Reported Links (${reportedLinks.length})`}
+        </h1>
+      </div>
+
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setView("all")}
+          className={cn(
+            "px-4 py-2 rounded-lg transition-colors duration-200 font-semibold text-sm",
+            view === "all"
+              ? "bg-white text-black"
+              : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10"
+          )}
+        >
+          All Links
+        </button>
+        <button
+          onClick={() => setView("reports")}
+          className={cn(
+            "px-4 py-2 rounded-lg transition-colors duration-200 font-semibold text-sm flex items-center gap-2",
+            view === "reports"
+              ? "bg-white text-black"
+              : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10"
+          )}
+        >
+          <Flag className="w-4 h-4" />
+          Reported Links
+          {reportedLinks.filter(l => l.priority).length > 0 && (
+            <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
+              {reportedLinks.filter(l => l.priority).length}
+            </span>
+          )}
+        </button>
       </div>
 
       <div className="flex justify-between items-center gap-4 mb-4">
@@ -345,7 +484,92 @@ function LinksPageContent() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? (
+            {view === "reports" ? (
+              loadingReports ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-white/50 py-8">
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : reportedLinks.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-white/50 py-8">
+                    No reported links found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                reportedLinks.map((link) => {
+                  const displayName = link.name || link.url;
+                  const ownerName = link.user
+                    ? link.user.firstName && link.user.lastName
+                      ? `${link.user.firstName} ${link.user.lastName}`
+                      : link.user.name || link.user.email || "Unknown"
+                    : "No Owner";
+
+                  return (
+                    <TableRow
+                      key={link.id}
+                      className={cn(
+                        "border-white/10 hover:bg-white/5 cursor-pointer",
+                        link.priority && "bg-red-500/10"
+                      )}
+                      onClick={() => fetchReportedLinkDetails(link.id)}
+                    >
+                      <TableCell className="text-white">
+                        {link.priority && (
+                          <span className="px-2 py-1 bg-red-500 text-white text-xs font-semibold rounded">
+                            Priority
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-white">
+                        <div className="flex items-center gap-3">
+                          <span>{displayName}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-white/70">
+                        <div className="flex items-center gap-2">
+                          <Link2 className="size-4 text-white/50" />
+                          <span className="font-mono text-sm">{link.url}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-white/70">{ownerName}</TableCell>
+                      <TableCell className="text-white">
+                        <div className="flex items-center gap-2">
+                          <Flag className="size-4 text-red-400" />
+                          <span>{link.totalReportCount} report{link.totalReportCount !== 1 ? 's' : ''}</span>
+                          {link.recentReportCount > 0 && (
+                            <span className="text-xs text-red-400">
+                              ({link.recentReportCount} recent)
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-white/70">
+                        {new Date(link.reports[0]?.createdAt || link.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell
+                        className="text-white"
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                      >
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-black border-white/10 text-white">
+                            <DropdownMenuItem onClick={() => fetchReportedLinkDetails(link.id)}>
+                              View Reports
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )
+            ) : loading ? (
               <TableRow>
                 <TableCell colSpan={visibleColumns.length + 2} className="text-center text-white/50 py-8">
                   Loading...
@@ -785,6 +1009,206 @@ function LinksPageContent() {
                     </div>
                   </div>
                 )}
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Reports Sheet */}
+      <Sheet open={reportSheetOpen} onOpenChange={setReportSheetOpen}>
+        <SheetContent className="bg-black border-white/10 text-white overflow-y-auto">
+          {selectedReportedLink && (
+            <>
+              <SheetHeader>
+                <div className="flex items-center justify-between">
+                  <SheetTitle className="text-white text-2xl font-semibold">
+                    Reports for {selectedReportedLink.name || selectedReportedLink.url}
+                  </SheetTitle>
+                  {selectedReportedLink.priority && (
+                    <span className="px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded">
+                      Priority
+                    </span>
+                  )}
+                </div>
+                <SheetDescription className="text-white/70">
+                  {selectedReportedLink.totalReportCount} total report{selectedReportedLink.totalReportCount !== 1 ? 's' : ''}
+                  {selectedReportedLink.recentReportCount > 0 && (
+                    <span className="text-red-400 ml-2">
+                      ({selectedReportedLink.recentReportCount} in last 7 days)
+                    </span>
+                  )}
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="mt-6 space-y-6">
+                {/* Link Info */}
+                <div>
+                  <h3 className="text-sm font-semibold text-white/70 mb-3">Link Information</h3>
+                  <div className="space-y-2 text-white">
+                    <div className="flex items-center gap-2">
+                      <Link2 className="size-4 text-white/50" />
+                      <a
+                        href={`/${selectedReportedLink.url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-white hover:text-white/70 font-mono text-sm"
+                      >
+                        {selectedReportedLink.url}
+                      </a>
+                    </div>
+                    {selectedReportedLink.user && (
+                      <div className="flex items-center gap-2">
+                        <User className="size-4 text-white/50" />
+                        <span>
+                          {selectedReportedLink.user.firstName && selectedReportedLink.user.lastName
+                            ? `${selectedReportedLink.user.firstName} ${selectedReportedLink.user.lastName}`
+                            : selectedReportedLink.user.email || "Unknown"}
+                        </span>
+                        {selectedReportedLink.user.isFrozen && (
+                          <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded">
+                            Frozen
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="size-4 text-white/50" />
+                      <span>${Number(selectedReportedLink.price).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reports List */}
+                <div>
+                  <h3 className="text-sm font-semibold text-white/70 mb-3">Reports</h3>
+                  <div className="space-y-4">
+                    {selectedReportedLink.reports.map((report) => (
+                      <div
+                        key={report.id}
+                        className="p-4 bg-white/5 rounded-lg border border-white/10"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <span className="text-white font-semibold">{report.reason}</span>
+                            <span className="text-white/50 text-xs ml-2">
+                              {new Date(report.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <span className={cn(
+                            "px-2 py-1 text-xs rounded",
+                            report.status === "pending" && "bg-yellow-500/20 text-yellow-400",
+                            report.status === "resolved" && "bg-green-500/20 text-green-400",
+                            report.status === "dismissed" && "bg-gray-500/20 text-gray-400"
+                          )}>
+                            {report.status}
+                          </span>
+                        </div>
+                        <p className="text-white/70 text-sm mt-2 whitespace-pre-wrap">
+                          {report.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Moderation Actions */}
+                <div>
+                  <h3 className="text-sm font-semibold text-white/70 mb-3">Moderation Actions</h3>
+                  <div className="space-y-2">
+                    <Button
+                      onClick={() => moderateLink("freeze_user")}
+                      disabled={isModerating || !selectedReportedLink.user}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      <Ban className="w-4 h-4 mr-2" />
+                      Freeze User Account
+                    </Button>
+                    {showFileSelector ? (
+                      <div className="space-y-2">
+                        <div className="max-h-48 overflow-y-auto space-y-2 p-2 bg-white/5 rounded border border-white/10">
+                          {selectedReportedLink.files?.map((file) => (
+                            <div key={file.id} className="flex items-center gap-2 p-2 hover:bg-white/5 rounded">
+                              <Checkbox
+                                checked={selectedFileIds.has(file.id)}
+                                onCheckedChange={(checked) => {
+                                  const newSet = new Set(selectedFileIds);
+                                  if (checked) {
+                                    newSet.add(file.id);
+                                  } else {
+                                    newSet.delete(file.id);
+                                  }
+                                  setSelectedFileIds(newSet);
+                                }}
+                              />
+                              <span className="text-white text-sm flex-1 truncate">{file.name}</span>
+                              <span className="text-white/50 text-xs">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => {
+                              if (selectedFileIds.size === 0) {
+                                alert("Please select at least one file to remove");
+                                return;
+                              }
+                              moderateLink("remove_files", Array.from(selectedFileIds));
+                              setShowFileSelector(false);
+                              setSelectedFileIds(new Set());
+                            }}
+                            disabled={isModerating || selectedFileIds.size === 0}
+                            className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+                          >
+                            Remove Selected ({selectedFileIds.size})
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setShowFileSelector(false);
+                              setSelectedFileIds(new Set());
+                            }}
+                            variant="outline"
+                            className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={() => setShowFileSelector(true)}
+                        disabled={isModerating || !selectedReportedLink.files || selectedReportedLink.files.length === 0}
+                        className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                      >
+                        <FileX className="w-4 h-4 mr-2" />
+                        Remove Specific Files
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => {
+                        const reason = prompt("Enter reason for archiving:");
+                        if (reason) {
+                          moderateLink("archive_link", undefined, reason);
+                        }
+                      }}
+                      disabled={isModerating}
+                      className="w-full bg-gray-600 hover:bg-gray-700 text-white"
+                    >
+                      <Archive className="w-4 h-4 mr-2" />
+                      Archive Link
+                    </Button>
+                    <Button
+                      onClick={() => moderateLink("dismiss_reports")}
+                      disabled={isModerating}
+                      variant="outline"
+                      className="w-full bg-white/5 border-white/10 text-white hover:bg-white/10"
+                    >
+                      Dismiss Reports
+                    </Button>
+                  </div>
+                </div>
               </div>
             </>
           )}

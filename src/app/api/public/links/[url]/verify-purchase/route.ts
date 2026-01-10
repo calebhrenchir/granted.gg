@@ -10,11 +10,11 @@ export async function GET(
   try {
     const { url: linkUrl } = await params;
     const { searchParams } = new URL(request.url);
-    const sessionId = searchParams.get("session_id");
+    const email = searchParams.get("email");
 
-    if (!sessionId) {
+    if (!email) {
       return NextResponse.json(
-        { error: "Session ID is required" },
+        { error: "Email is required" },
         { status: 400 }
       );
     }
@@ -38,30 +38,42 @@ export async function GET(
       );
     }
 
-    // Verify the Stripe checkout session
-    let session;
+    // Verify purchase by email
+    const purchase = await prisma.activity.findFirst({
+      where: {
+        linkId: link.id,
+        type: "purchase",
+        customerEmail: email.toLowerCase().trim(),
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    if (!purchase || !purchase.stripePaymentIntentId) {
+      return NextResponse.json(
+        { error: "No purchase found for this email" },
+        { status: 404 }
+      );
+    }
+
+    // Verify the payment intent is paid
     try {
-      session = await stripe.checkout.sessions.retrieve(sessionId);
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        purchase.stripePaymentIntentId
+      );
+      
+      if (paymentIntent.status !== "succeeded") {
+        return NextResponse.json(
+          { error: "Payment not completed" },
+          { status: 400 }
+        );
+      }
     } catch (error) {
-      console.error("Error retrieving Stripe session:", error);
+      console.error("Error verifying payment intent:", error);
       return NextResponse.json(
-        { error: "Invalid session" },
-        { status: 400 }
-      );
-    }
-
-    // Verify the session is paid and matches this link
-    if (session.payment_status !== "paid") {
-      return NextResponse.json(
-        { error: "Payment not completed" },
-        { status: 400 }
-      );
-    }
-
-    if (session.metadata?.linkId !== link.id && session.metadata?.linkUrl !== linkUrl) {
-      return NextResponse.json(
-        { error: "Session does not match this link" },
-        { status: 403 }
+        { error: "Failed to verify purchase" },
+        { status: 500 }
       );
     }
 
@@ -98,37 +110,17 @@ export async function GET(
       })
     );
 
-    // Get customer email from session or activity
-    let customerEmail: string | undefined;
-    if (session.customer_email) {
-      customerEmail = session.customer_email;
-    } else if (session.metadata?.email) {
-      customerEmail = session.metadata.email;
-    } else {
-      // Try to get from activity
-      const activity = await prisma.activity.findFirst({
-        where: {
-          linkId: link.id,
-          stripePaymentIntentId: session.payment_intent as string,
-        },
-        select: {
-          customerEmail: true,
-        },
-      });
-      customerEmail = activity?.customerEmail || undefined;
-    }
-
     return NextResponse.json({
       success: true,
       files: filesWithUrls,
-      customerEmail,
     });
   } catch (error) {
-    console.error("Error fetching purchased files:", error);
+    console.error("Error verifying purchase:", error);
     return NextResponse.json(
-      { error: "Failed to fetch purchased files" },
+      { error: "Failed to verify purchase" },
       { status: 500 }
     );
   }
 }
+
 
